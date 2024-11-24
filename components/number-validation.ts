@@ -1,5 +1,5 @@
 const generateValidNumbers = (min: number, max: number) => {
-    let validNumbers = [];
+    const validNumbers = [];
     for (let current = min; current <= max; current++)
     {
         validNumbers.push(current);
@@ -13,7 +13,6 @@ const generateValidStrings = (min: number, max: number) => {
 
 
 export const validateInput = (min: number, max: number, defaultValue: number, current: number, newValue: string): number => {
-    console.log(newValue);
     if (generateValidStrings(min, max).includes(newValue))
     {
         return parseInt(newValue);
@@ -27,7 +26,7 @@ export const validateInput = (min: number, max: number, defaultValue: number, cu
         return defaultValue;
     }
     // check if a digit was typed that can be accepted when everything else that is in the field is discarded
-    let currentString = `${current}`;
+    const currentString = `${current}`;
     if (newValue.startsWith(currentString))
     {
         return validateInput(min, max, defaultValue, current, newValue.substring(currentString.length));

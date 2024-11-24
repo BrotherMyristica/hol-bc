@@ -13,6 +13,7 @@ import Preferences from "@/components/preferences";
 import CardCollection from "@/components/collection";
 import CoreSuggestions from "@/components/core-suggestions";
 import DeckBuilder from "@/components/deck-builder";
+import DeckSummary from "@/components/deck-summary";
 
 const Home = () => {
   const [page, setPage] = useState("collection");
@@ -88,7 +89,9 @@ const Home = () => {
             <TabPanel value="deck_builder">
               <DeckBuilder active={page === "deck_builder"} db={db} />
             </TabPanel>
-            <TabPanel value="deck_summary">coming soon...</TabPanel>
+            <TabPanel value="deck_summary">
+              <DeckSummary active={page === "deck_summary"} db={db} />
+            </TabPanel>
           </TabContext>
         )}
       </Container>
