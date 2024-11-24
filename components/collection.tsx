@@ -10,19 +10,13 @@ import Button from "@mui/material/Button";
 import TableHead from "@mui/material/TableHead";
 import { useState, useEffect, useCallback } from "react";
 
-const Copies = (props: { update: (arg0: number) => void; value: number }) => {
-  const isValid = (value: string) => {
-    return ["0", "1", "2", "3"].includes(value);
-  };
+import { validateInput } from "./number-validation";
 
+const Copies = (props: { update: (arg0: number) => void; value: number }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value;
-    if (isValid(newValue)) {
-      props.update(parseInt(newValue));
-      return;
-    }
-    if (!isValid(`${props.value}`)) {
-      props.update(0);
+    const newValue = validateInput(0, 3, 0, props.value, event.target.value);
+    if (newValue != props.value) {
+      props.update(newValue);
     }
   };
 
@@ -38,7 +32,7 @@ const Copies = (props: { update: (arg0: number) => void; value: number }) => {
         },
       }}
       type="number"
-      value={props.value}
+      value={`${props.value}`}
       onChange={handleChange}
       variant="outlined"
     />

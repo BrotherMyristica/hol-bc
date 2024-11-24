@@ -12,6 +12,7 @@ import GrainIcon from "@mui/icons-material/Grain";
 import CircleIcon from "@mui/icons-material/Circle";
 import Slider from "@mui/material/Slider";
 import { useState, useEffect, useCallback } from "react";
+import { validateInput } from "./number-validation";
 
 const WeightPreference = (props: {
   update: (arg0: number) => void;
@@ -111,18 +112,10 @@ const LevelPreference = (props: {
   update: (arg0: number) => void;
   value: number;
 }) => {
-  const isValid = (value: string) => {
-    return ["1", "2", "3", "4", "5"].includes(value);
-  };
-
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value;
-    if (isValid(newValue)) {
-      props.update(parseInt(newValue));
-      return;
-    }
-    if (!isValid(`${props.value}`)) {
-      props.update(2);
+    const newValue = validateInput(1, 5, 2, props.value, event.target.value);
+    if (newValue != props.value) {
+      props.update(newValue);
     }
   };
 
@@ -133,7 +126,7 @@ const LevelPreference = (props: {
         <TextField
           sx={{ width: "70px" }}
           type="number"
-          value={props.value}
+          value={`${props.value}`}
           onChange={handleChange}
           variant="outlined"
         />
