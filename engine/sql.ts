@@ -26,7 +26,7 @@ SELECT card1, card2, result, rarity, level,
 FROM base_stats),
 valued_combos AS (
 SELECT  card1, card2, result, rarity, level, attack, defense,
-attack * (SELECT value FROM config WHERE uid = 1) + defense * (1-(SELECT value FROM config WHERE uid = 1)) as value
+power(attack * (SELECT value FROM config WHERE uid = 1) + defense * (1-(SELECT value FROM config WHERE uid = 1)), (SELECT value FROM config WHERE uid = 3)) as value
 FROM final_stats)
 INSERT INTO combo_values (card1, card2, result, rarity, level, attack, defense, value, multiplier, potential_value)
 SELECT card1, card2, result, rarity, level, attack, defense, value,

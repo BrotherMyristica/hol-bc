@@ -68,7 +68,7 @@ const Home = () => {
                 <Tab label="Card Collection" value="collection" />
                 <Tab label="Core Cards Suggestions" value="core_suggestions" />
                 <Tab label="Deck Builder" value="deck_builder" />
-                <Tab label="Deck Overview" value="deck_overview" />
+                <Tab label="Deck Summary" value="deck_summary" />
               </TabList>
             </Box>
             <TabPanel value="cards">coming soon...</TabPanel>
@@ -88,7 +88,7 @@ const Home = () => {
             <TabPanel value="deck_builder">
               <DeckBuilder active={page === "deck_builder"} db={db} />
             </TabPanel>
-            <TabPanel value="deck_overview">coming soon...</TabPanel>
+            <TabPanel value="deck_summary">coming soon...</TabPanel>
           </TabContext>
         )}
       </Container>

@@ -27,8 +27,6 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
         const d = event.data.results[1]?.values ?? [];
         setAvailable(a);
         setDeck(d);
-        console.log(a);
-        console.log(d);
       }
     };
     props.db.postMessage({
