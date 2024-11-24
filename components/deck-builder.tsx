@@ -12,6 +12,7 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid2";
 import { useState, useEffect, useCallback } from "react";
 import { addBestCardSql, calculateValue } from "@/engine/sql";
+import GameCard from "./game-card";
 
 const DeckBuilder = (props: { db: Worker; active: boolean }) => {
   const [available, setAvailable] = useState([]);
@@ -97,14 +98,11 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
                     <TableRow key={item[0]}>
                       <TableCell align="right">{item[1]}</TableCell>
                       <TableCell align="center">
-                        <Button
-                          sx={{ width: "200px" }}
-                          variant="outlined"
+                        <GameCard
+                          card={item[0]}
                           onClick={() => addCard(item[0])}
                           disabled={item[1] < 1}
-                        >
-                          {item[0]}
-                        </Button>
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -133,13 +131,10 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
                   {deck.map((item) => (
                     <TableRow key={item[0]}>
                       <TableCell align="center">
-                        <Button
-                          sx={{ width: "200px" }}
-                          variant="outlined"
+                        <GameCard
+                          card={item[1]}
                           onClick={() => removeCard(item[0])}
-                        >
-                          {item[1]}
-                        </Button>
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

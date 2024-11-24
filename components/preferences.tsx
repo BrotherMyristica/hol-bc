@@ -13,6 +13,7 @@ import CircleIcon from "@mui/icons-material/Circle";
 import Slider from "@mui/material/Slider";
 import { useState, useEffect, useCallback } from "react";
 import { validateInput } from "./number-validation";
+import Container from "@mui/material/Container";
 
 const WeightPreference = (props: {
   update: (arg0: number) => void;
@@ -179,7 +180,7 @@ const Preferences = (props: { db: Worker; active: boolean }) => {
   };
 
   return (
-    <>
+    <Container maxWidth="sm">
       {config && (
         <TableContainer>
           <Table sx={{ width: "auto", marginTop: "1em" }}>
@@ -206,7 +207,7 @@ const Preferences = (props: { db: Worker; active: boolean }) => {
           </Table>
         </TableContainer>
       )}
-    </>
+    </Container>
   );
 };
 

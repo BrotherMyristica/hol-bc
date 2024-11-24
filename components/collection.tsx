@@ -11,6 +11,8 @@ import TableHead from "@mui/material/TableHead";
 import { useState, useEffect, useCallback } from "react";
 
 import { validateInput } from "./number-validation";
+import GameCard from "./game-card";
+import Container from "@mui/material/Container";
 
 const Copies = (props: { update: (arg0: number) => void; value: number }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,7 +125,7 @@ const CardCollection = (props: { db: Worker; active: boolean }) => {
     : [];
 
   return (
-    <>
+    <Container maxWidth="md">
       <h3>How many copies do you have of each card?</h3>
       <Stack spacing={2} direction="row">
         <Button variant="contained" onClick={setAllToZero}>
@@ -140,17 +142,27 @@ const CardCollection = (props: { db: Worker; active: boolean }) => {
         </Button>
       </Stack>
       <TableContainer>
-        <Table sx={{ width: "auto", marginTop: "1em" }} size="small">
+        <Table
+          sx={{
+            width: "auto",
+            margin: "auto",
+            marginTop: "1em",
+            minWidth: "350px",
+          }}
+          size="small"
+        >
           <TableHead>
             <TableRow>
-              <TableCell>Card</TableCell>
+              <TableCell sx={{ textAlign: "center" }}>Card</TableCell>
               <TableCell>Copies</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {collectionList.map((item) => (
               <TableRow key={item[0]}>
-                <TableCell sx={{ border: "0" }}>{item[0]}</TableCell>
+                <TableCell sx={{ border: "0" }}>
+                  <GameCard card={item[0]} />
+                </TableCell>
                 <TableCell sx={{ border: "0" }}>
                   <Copies
                     value={item[1]}
@@ -164,7 +176,7 @@ const CardCollection = (props: { db: Worker; active: boolean }) => {
           </TableBody>
         </Table>
       </TableContainer>
-    </>
+    </Container>
   );
 };
 

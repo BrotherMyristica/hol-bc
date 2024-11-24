@@ -10,8 +10,13 @@ import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid2";
 import { useState, useEffect, useCallback } from "react";
 import { calculateValue } from "@/engine/sql";
+import GameCard from "./game-card";
+import ComboMap from "./combo-map";
+import GridOnIcon from "@mui/icons-material/GridOn";
+import IconButton from "@mui/material/IconButton";
 
 const DeckSummary = (props: { db: Worker; active: boolean }) => {
+  const [mapOpen, setMapOpen] = useState(false);
   const [deck, setDeck] = useState([]);
   const [deckCombos, setDeckCombos] = useState([]);
 
@@ -41,66 +46,105 @@ const DeckSummary = (props: { db: Worker; active: boolean }) => {
   }, [props.active, props.db, fetchData]);
 
   return (
-    <Grid container rowSpacing={2} columnSpacing={10}>
-      <Grid size={4}>
-        <Paper sx={{ padding: "5px" }}>
-          <h4 style={{ textAlign: "center" }}>Deck</h4>
-          <TableContainer>
-            <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell align="center">Card</TableCell>
-                  <TableCell align="left">Amount</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {deck.map((item) => (
-                  <TableRow key={item[0]}>
-                    <TableCell align="center">{item[0]}</TableCell>
-                    <TableCell align="left">{item[1]}</TableCell>
+    <>
+      <ComboMap
+        cards={deck}
+        combos={deckCombos}
+        open={mapOpen}
+        close={() => setMapOpen(false)}
+      />
+      <Grid container rowSpacing={2} columnSpacing={10}>
+        <Grid size={4}>
+          <Paper sx={{ padding: "5px" }}>
+            <h4 style={{ textAlign: "center" }}>Deck</h4>
+            <TableContainer>
+              <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center">Card</TableCell>
+                    <TableCell align="left">Amount</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Grid>
-      <Grid size={8}>
-        <Paper sx={{ padding: "5px", minHeight: "90vh" }}>
-          <h4 style={{ textAlign: "center" }}>Combos</h4>
-          {deck.length >= 30 && (
-            <p style={{ textAlign: "center", color: "red" }}>
-              When there are too many cards in your deck it means your are less
-              likely to draw your good cards.
-            </p>
-          )}
-          <TableContainer>
-            <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Card 1</TableCell>
-                  <TableCell>Card 2</TableCell>
-                  <TableCell>Result</TableCell>
-                  <TableCell>Rating</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {deckCombos.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{item[0]}</TableCell>
-                    <TableCell>{item[1]}</TableCell>
-                    <TableCell>{`${item[2]} (${item[3]}) Lv. ${item[4]} ${item[5]}/${item[6]} `}</TableCell>
-                    <TableCell align="center">
-                      {Math.round(100 * item[7]) / 100}
-                    </TableCell>
+                </TableHead>
+                <TableBody>
+                  {deck.map((item) => (
+                    <TableRow key={item[0]}>
+                      <TableCell align="center">
+                        <GameCard card={item[0]} />
+                      </TableCell>
+                      <TableCell align="left">{item[1]}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
+        <Grid size={8}>
+          <Paper
+            sx={{ padding: "5px", minHeight: "90vh", position: "relative" }}
+          >
+            <h4 style={{ textAlign: "center" }}>Combos</h4>
+            <IconButton
+              sx={{
+                borderRadius: "5px",
+                position: "absolute",
+                top: "15px",
+                right: "15px",
+              }}
+              color="primary"
+              onClick={() => setMapOpen(true)}
+              disabled={deckCombos.length < 1}
+            >
+              <GridOnIcon />
+            </IconButton>
+            {deck.length >= 30 && (
+              <p style={{ textAlign: "center", color: "red" }}>
+                When there are too many cards in your deck it means your are
+                less likely to draw your good cards.
+              </p>
+            )}
+            <TableContainer>
+              <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Card 1</TableCell>
+                    <TableCell>Card 2</TableCell>
+                    <TableCell>Result</TableCell>
+                    <TableCell>Rating</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {deckCombos.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <GameCard card={item[0]} />
+                      </TableCell>
+                      <TableCell>
+                        <GameCard card={item[1]} />
+                      </TableCell>
+
+                      <TableCell>
+                        <GameCard
+                          card={item[2]}
+                          level={item[4]}
+                          attack={item[5]}
+                          defense={item[6]}
+                          showDetails={true}
+                        />
+                      </TableCell>
+
+                      <TableCell align="center">
+                        {Math.round(100 * item[7]) / 100}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
       </Grid>
-    </Grid>
+    </>
   );
 };
 

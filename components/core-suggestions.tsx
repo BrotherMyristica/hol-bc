@@ -11,6 +11,8 @@ import Button from "@mui/material/Button";
 import { useState, useEffect, useCallback } from "react";
 
 import { calculateValue, multiCombos } from "@/engine/sql";
+import GameCard from "./game-card";
+import Container from "@mui/material/Container";
 
 const CoreSuggestions = (props: {
   db: Worker;
@@ -55,17 +57,19 @@ const CoreSuggestions = (props: {
   };
 
   return (
-    <>
+    <Container maxWidth="lg">
       <h3>
         Skip this step if you already have some cards in mind that you want to
         use
       </h3>
       <TableContainer>
-        <Table sx={{ width: "auto", marginTop: "1em" }}>
+        <Table sx={{ marginTop: "1em" }}>
           <TableHead>
             <TableRow>
               <TableCell>#</TableCell>
-              <TableCell>Cards</TableCell>
+              <TableCell colSpan={4} sx={{ textAlign: "center" }}>
+                Cards
+              </TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableHead>
@@ -76,7 +80,18 @@ const CoreSuggestions = (props: {
                 sx={{ opacity: 0.3 + (0.7 * item[4]) / suggestions[0][4] }}
               >
                 <TableCell>{index + 1}</TableCell>
-                <TableCell>{`${item[0]}, ${item[1]}, ${item[2]}, ${item[3]}`}</TableCell>
+                <TableCell>
+                  <GameCard card={item[0]} />
+                </TableCell>
+                <TableCell>
+                  <GameCard card={item[1]} />
+                </TableCell>
+                <TableCell>
+                  <GameCard card={item[2]} />
+                </TableCell>
+                <TableCell>
+                  <GameCard card={item[3]} />
+                </TableCell>
                 <TableCell>
                   <Button
                     variant="outlined"
@@ -90,7 +105,7 @@ const CoreSuggestions = (props: {
           </TableBody>
         </Table>
       </TableContainer>
-    </>
+    </Container>
   );
 };
 
