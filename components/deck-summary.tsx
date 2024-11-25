@@ -97,12 +97,6 @@ const DeckSummary = (props: { db: Worker; active: boolean }) => {
             >
               <GridOnIcon />
             </IconButton>
-            {deck.length >= 30 && (
-              <p style={{ textAlign: "center", color: "red" }}>
-                When there are too many cards in your deck it means your are
-                less likely to draw your good cards.
-              </p>
-            )}
             <TableContainer>
               <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
                 <TableHead>

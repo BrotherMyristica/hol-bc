@@ -8,17 +8,35 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Preferences from "@/components/preferences";
 import CardCollection from "@/components/collection";
 import CoreSuggestions from "@/components/core-suggestions";
 import DeckBuilder from "@/components/deck-builder";
 import DeckSummary from "@/components/deck-summary";
 import CardProvider from "@/components/card-context";
+import Encyclopedia from "@/components/encyclopedia";
+import Button from "@mui/material/Button";
+import { clearSetting, exportAsLink, importFromLink } from "@/engine/storage";
+import { useRouter, useSearchParams } from "next/navigation";
+
+const ImportButton = (props: { importDeck: (arg0: string) => void }) => {
+  const deckFromUrl = useSearchParams().get("deck");
+  return (
+    <Button
+      color="inherit"
+      onClick={() => deckFromUrl && props.importDeck(deckFromUrl)}
+      disabled={deckFromUrl === null}
+    >
+      Import Deck
+    </Button>
+  );
+};
 
 const Home = () => {
   const [page, setPage] = useState("collection");
   const [db, setDb] = useState<null | Worker>(null);
+  const router = useRouter();
   //const [error, setError] = useState<null | string>(null);
 
   const initDb = async () => {
@@ -44,6 +62,31 @@ const Home = () => {
     initDb();
   }, []);
 
+  const clearSavedData = () => {
+    if (
+      confirm("Do you really want to clear your preferences/collection/deck?")
+    ) {
+      clearSetting();
+      window.location.href = "/";
+    }
+  };
+
+  const getPermalink = () => {
+    const link = exportAsLink();
+    router.replace(link, { scroll: false });
+  };
+
+  const importDeck = (deck: string) => {
+    if (
+      confirm(
+        "Importing the deck will overwrite your preferences/collection/deck. Continue?"
+      )
+    ) {
+      importFromLink(deck);
+      window.location.href = "/";
+    }
+  };
+
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setPage(newValue);
   };
@@ -54,6 +97,15 @@ const Home = () => {
           <Typography variant="h3" component="div" sx={{ flexGrow: 1 }}>
             HoL: BC
           </Typography>
+          <Suspense>
+            <ImportButton importDeck={importDeck} />
+          </Suspense>
+          <Button color="inherit" onClick={() => getPermalink()}>
+            Get Link
+          </Button>
+          <Button color="inherit" onClick={() => clearSavedData()}>
+            Clear saved Data
+          </Button>
         </Toolbar>
       </AppBar>
       <Container maxWidth={false}>
@@ -77,7 +129,9 @@ const Home = () => {
                   <Tab label="Deck Summary" value="deck_summary" />
                 </TabList>
               </Box>
-              <TabPanel value="cards">coming soon...</TabPanel>
+              <TabPanel value="cards">
+                <Encyclopedia />
+              </TabPanel>
               <TabPanel value="preferences">
                 <Preferences active={page === "preferences"} db={db} />
               </TabPanel>

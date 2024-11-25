@@ -1,8 +1,10 @@
+import { assembleRestoreSQL } from "@/engine/storage";
 import { createContext, useCallback, useEffect, useState } from "react";
 
 type Rarities = "Common" | "Uncommon" | "Rare" | "Epic";
 
-interface ICardDetails {
+export interface ICardDetails {
+  id: number;
   card: string;
   rarity: Rarities;
   is_basic: boolean;
@@ -11,7 +13,8 @@ interface ICardDetails {
   base_defense: number;
 }
 
-interface ICombos {
+export interface ICombos {
+  id: number;
   card1: string;
   card2: string;
   result: string;
@@ -35,7 +38,11 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
         const c = event.data.results[1].values;
         setCardData({
           cards: d.map(
-            (e: [string, Rarities, boolean, boolean, number, number]) => ({
+            (
+              e: [string, Rarities, boolean, boolean, number, number],
+              index: number
+            ) => ({
+              id: index,
               card: e[0],
               rarity: e[1],
               is_basic: e[2],
@@ -44,7 +51,8 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
               base_defense: e[5],
             })
           ),
-          combos: c.map((e: [string, string, string]) => ({
+          combos: c.map((e: [string, string, string], index: number) => ({
+            id: index,
             card1: e[0],
             card2: e[1],
             result: e[2],
@@ -52,10 +60,11 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
         });
       }
     };
+    const restoreSQL = assembleRestoreSQL();
     props.db.postMessage({
       id: "select_card_data",
       action: "exec",
-      sql: "SELECT card, rarity, is_basic, is_mergeresult, base_attack, base_defense FROM cards; SELECT card1, card2, result FROM combos;",
+      sql: `${restoreSQL} SELECT card, rarity, is_basic, is_mergeresult, base_attack, base_defense FROM cards; SELECT card1, card2, result FROM combos;`,
     });
   }, [props.db]);
 

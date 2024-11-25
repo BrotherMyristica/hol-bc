@@ -96,6 +96,8 @@ const GameCard = (props: {
             background-color: ${colors[cardDetails.rarity]}20;
             text-align: center;
             min-width: 130px;
+            max-width: 300px;
+            margin: auto;
           }
           .card.clickable:hover {
             filter: drop-shadow(0px 0px 5px ${colors[cardDetails.rarity]}80);

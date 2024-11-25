@@ -13,6 +13,7 @@ import Grid from "@mui/material/Grid2";
 import { useState, useEffect, useCallback } from "react";
 import { addBestCardSql, calculateValue } from "@/engine/sql";
 import GameCard from "./game-card";
+import { setDeckAll } from "@/engine/storage";
 
 const DeckBuilder = (props: { db: Worker; active: boolean }) => {
   const [available, setAvailable] = useState([]);
@@ -28,6 +29,7 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
         const d = event.data.results[1]?.values ?? [];
         setAvailable(a);
         setDeck(d);
+        setDeckAll(d.map((e: [number, string]) => e[1]));
       }
     };
     props.db.postMessage({

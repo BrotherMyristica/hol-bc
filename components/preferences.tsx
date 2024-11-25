@@ -14,6 +14,7 @@ import Slider from "@mui/material/Slider";
 import { useState, useEffect, useCallback } from "react";
 import { validateInput } from "./number-validation";
 import Container from "@mui/material/Container";
+import { setPreference } from "@/engine/storage";
 
 const WeightPreference = (props: {
   update: (arg0: number) => void;
@@ -177,6 +178,7 @@ const Preferences = (props: { db: Worker; active: boolean }) => {
       sql: "UPDATE config SET value=$value WHERE uid=$uid",
       params: { $uid: index, $value: newValue },
     });
+    setPreference(index, newValue);
   };
 
   return (

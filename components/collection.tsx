@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback } from "react";
 import { validateInput } from "./number-validation";
 import GameCard from "./game-card";
 import Container from "@mui/material/Container";
+import { setCollectionAll, setCollectionSingle } from "@/engine/storage";
 
 const Copies = (props: { update: (arg0: number) => void; value: number }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,15 +51,15 @@ const CardCollection = (props: { db: Worker; active: boolean }) => {
     props.db.onmessage = (event) => {
       if (event.data.id === "select_collection") {
         const result = event.data.results[0].values;
-        setCollection(
-          result.reduce(
-            (a: { [key: string]: number }, v: [string, number]) => ({
-              ...a,
-              [v[0]]: v[1],
-            }),
-            {}
-          )
+        const coll = result.reduce(
+          (a: { [key: string]: number }, v: [string, number]) => ({
+            ...a,
+            [v[0]]: v[1],
+          }),
+          {}
         );
+        setCollection(coll);
+        setCollectionAll(coll);
       }
     };
     props.db.postMessage({
@@ -116,6 +117,7 @@ const CardCollection = (props: { db: Worker; active: boolean }) => {
       sql: "UPDATE collection SET amount=$amount WHERE card=$card",
       params: { $card: card, $amount: newValue },
     });
+    setCollectionSingle(card, newValue);
   };
 
   const collectionList: [string, number][] = collection
