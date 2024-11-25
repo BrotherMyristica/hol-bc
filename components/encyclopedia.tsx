@@ -198,10 +198,15 @@ const Encyclopedia = () => {
     return null;
   }
 
-  const { cards, combos } = cardCtx;
+  const { cards, combos, cardPool } = cardCtx;
   return (
     <>
-      <CardDetail combos={combos} card={detail} setCard={setDetail} />
+      <CardDetail
+        combos={combos}
+        card={detail}
+        setCard={setDetail}
+        pool={cardPool}
+      />
       <Grid container rowSpacing={2} columnSpacing={10}>
         <Grid size={4}>
           <div style={{ display: "flex", flexDirection: "column" }}>

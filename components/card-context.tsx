@@ -20,15 +20,28 @@ export interface ICombos {
   result: string;
 }
 
+export interface ICardPool {
+  id: number;
+  world: number;
+  enemy: number;
+  stage: number;
+  battle: number;
+  enemyName: string;
+  wins: number;
+  reward: string;
+}
+
 export const CardContext = createContext<null | {
   cards: ICardDetails[];
   combos: ICombos[];
+  cardPool: ICardPool[];
 }>(null);
 
 const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
   const [cardData, setCardData] = useState<null | {
     cards: ICardDetails[];
     combos: ICombos[];
+    cardPool: ICardPool[];
   }>(null);
 
   const fetchData = useCallback(() => {
@@ -36,6 +49,7 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
       if (event.data.id === "select_card_data") {
         const d = event.data.results[0].values;
         const c = event.data.results[1].values;
+        const p = event.data.results[2].values;
         setCardData({
           cards: d.map(
             (
@@ -57,14 +71,35 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
             card2: e[1],
             result: e[2],
           })),
+          cardPool: p.map(
+            (
+              e: [number, number, number, number, string, number, string],
+              index: number
+            ) => ({
+              id: index,
+              world: e[0],
+              enemy: e[1],
+              stage: e[2],
+              battle: e[3],
+              enemyName: e[4],
+              wins: e[5],
+              reward: e[6],
+            })
+          ),
         });
       }
     };
     const restoreSQL = assembleRestoreSQL();
+    const selectCardsSQL =
+      "SELECT card, rarity, is_basic, is_mergeresult, base_attack, base_defense FROM cards ORDER BY card;";
+    const selectCombosSQL =
+      "SELECT card1, card2, result FROM combos ORDER BY card1, card2;";
+    const selectPoolSQL =
+      "SELECT world, enemy, stage, battle, enemy_name, wins, reward FROM card_pool ORDER BY world, enemy, stage, battle;";
     props.db.postMessage({
       id: "select_card_data",
       action: "exec",
-      sql: `${restoreSQL} SELECT card, rarity, is_basic, is_mergeresult, base_attack, base_defense FROM cards; SELECT card1, card2, result FROM combos;`,
+      sql: `${restoreSQL} ${selectCardsSQL} ${selectCombosSQL} ${selectPoolSQL}`,
     });
   }, [props.db]);
 

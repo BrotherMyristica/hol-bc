@@ -19,6 +19,7 @@ import Encyclopedia from "@/components/encyclopedia";
 import Button from "@mui/material/Button";
 import { clearSetting, exportAsLink, importFromLink } from "@/engine/storage";
 import { useRouter, useSearchParams } from "next/navigation";
+import Opponents from "@/components/opponents";
 
 const ImportButton = (props: { importDeck: (arg0: string) => void }) => {
   const deckFromUrl = useSearchParams().get("deck");
@@ -119,6 +120,7 @@ const Home = () => {
                   scrollButtons="auto"
                 >
                   <Tab label="Card Encyclopedia" value="cards" />
+                  <Tab label="Opponents" value="opponents" />
                   <Tab label="Preferences" value="preferences" />
                   <Tab label="Card Collection" value="collection" />
                   <Tab
@@ -131,6 +133,9 @@ const Home = () => {
               </Box>
               <TabPanel value="cards">
                 <Encyclopedia />
+              </TabPanel>
+              <TabPanel value="opponents">
+                <Opponents />
               </TabPanel>
               <TabPanel value="preferences">
                 <Preferences active={page === "preferences"} db={db} />
