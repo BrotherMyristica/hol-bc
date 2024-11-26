@@ -96,15 +96,9 @@ DROP TABLE combo4;
 `;
 
 export const addBestCardSql = `
-WITH combinations AS (
-SELECT MIN(d.card, a.card) AS card1, MAX(d.card, a.card) AS card2, a.card AS new_card FROM deck d, available_cards a
-WHERE a.amount > 0
-)
 INSERT INTO deck (card)
-SELECT c.new_card FROM combinations c
-JOIN combo_values v
-ON c.card1 = v.card1 AND c.card2 = v.card2
-GROUP BY c.new_card
-ORDER BY SUM(value) desc
+SELECT new_card FROM deck_synergy
+WHERE amount > 0
+ORDER BY relative_synergy DESC
 LIMIT 1;
 `;

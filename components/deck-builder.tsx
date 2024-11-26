@@ -20,7 +20,7 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
   const [deck, setDeck] = useState([]);
 
   const selectDeckSql =
-    "SELECT card, amount FROM available_cards ORDER BY card; SELECT uid, card FROM deck ORDER BY uid";
+    "SELECT a.card, a.amount, COALESCE(s.relative_synergy, 0) FROM available_cards a LEFT JOIN deck_synergy s on a.card = s.new_card ORDER BY (a.amount > 0) DESC, s.relative_synergy DESC, card; SELECT uid, card FROM deck ORDER BY uid";
 
   const fetchData = useCallback(() => {
     props.db.onmessage = (event) => {
@@ -84,7 +84,7 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
             Add best card
           </Button>
         </Grid>
-        <Grid size={6}>
+        <Grid size={7}>
           <Paper sx={{ padding: "5px" }}>
             <h4 style={{ textAlign: "center" }}>Available Cards</h4>
             <TableContainer>
@@ -93,6 +93,7 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
                   <TableRow>
                     <TableCell align="right">Remaining Copies</TableCell>
                     <TableCell align="center">Card</TableCell>
+                    <TableCell align="center">Synergy</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -106,6 +107,12 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
                           disabled={item[1] < 1}
                         />
                       </TableCell>
+                      <TableCell
+                        align="right"
+                        sx={{ color: item[1] === 0 ? "lightgray" : "black" }}
+                      >
+                        {Math.round(100 * item[2])}&thinsp;%
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -113,10 +120,10 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
             </TableContainer>
           </Paper>
         </Grid>
-        <Grid size={6}>
+        <Grid size={5}>
           <Paper sx={{ padding: "5px", minHeight: "90vh" }}>
             <h4 style={{ textAlign: "center" }}>Deck ({deck.length})</h4>
-            {deck.length >= 30 && (
+            {deck.length > 30 && (
               <p style={{ textAlign: "center", color: "red" }}>
                 When there are too many cards in your deck it means your are
                 less likely to draw your good cards.
