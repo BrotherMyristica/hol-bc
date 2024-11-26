@@ -14,6 +14,7 @@ import { useState, useEffect, useCallback } from "react";
 import { addBestCardSql, calculateValue } from "@/engine/sql";
 import GameCard from "./game-card";
 import { setDeckAll } from "@/engine/storage";
+import Stack from "@mui/material/Stack";
 
 const DeckBuilder = (props: { db: Worker; active: boolean }) => {
   const [available, setAvailable] = useState([]);
@@ -43,7 +44,7 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
     props.db.postMessage({
       id: "select_deck",
       action: "exec",
-      sql: `${addBestCardSql}; ${selectDeckSql}`,
+      sql: `${addBestCardSql} ${selectDeckSql}`,
     });
   };
 
@@ -56,12 +57,32 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
     });
   };
 
+  const fillDeck = () => {
+    const amount = 30 - deck.length;
+    if (amount < 1 || amount >= 30) {
+      return;
+    }
+    props.db.postMessage({
+      id: "select_deck",
+      action: "exec",
+      sql: `${addBestCardSql.repeat(amount)} ${selectDeckSql}`,
+    });
+  };
+
   const removeCard = (uid: number) => {
     props.db.postMessage({
       id: "select_deck",
       action: "exec",
       sql: `DELETE FROM deck WHERE uid=$uid; ${selectDeckSql}`,
       params: { $uid: uid },
+    });
+  };
+
+  const clearDeck = () => {
+    props.db.postMessage({
+      id: "select_deck",
+      action: "exec",
+      sql: `DELETE FROM deck; ${selectDeckSql}`,
     });
   };
 
@@ -75,14 +96,36 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
     <Container maxWidth="lg">
       <Grid container rowSpacing={2} columnSpacing={10}>
         <Grid size={12} sx={{ textAlign: "center" }}>
-          <Button
-            sx={{ minWidth: "200px" }}
-            variant="contained"
-            onClick={() => addBestCard()}
-            disabled={deck.length < 1}
+          <Stack
+            direction={"row"}
+            spacing={2}
+            sx={{ justifyContent: "center" }}
           >
-            Add best card
-          </Button>
+            <Button
+              sx={{ minWidth: "200px" }}
+              variant="outlined"
+              onClick={() => clearDeck()}
+              disabled={deck.length < 1}
+            >
+              Clear deck
+            </Button>
+            <Button
+              sx={{ minWidth: "200px" }}
+              variant="contained"
+              onClick={() => addBestCard()}
+              disabled={deck.length < 1}
+            >
+              Add best card
+            </Button>
+            <Button
+              sx={{ minWidth: "200px" }}
+              variant="contained"
+              onClick={() => fillDeck()}
+              disabled={deck.length < 1 || deck.length >= 30}
+            >
+              Fill deck
+            </Button>
+          </Stack>
         </Grid>
         <Grid size={7}>
           <Paper sx={{ padding: "5px" }}>
