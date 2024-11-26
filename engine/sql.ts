@@ -3,7 +3,7 @@ DELETE FROM combo_values;
 
 WITH base_stats AS (
 SELECT c.card1, c.card2, c.result, cr.rarity, cr.base_attack, cr.base_defense,
-MIN(5,(SELECT value FROM config WHERE uid = 2) + rr.bonus_level_for_combo) AS level,
+(SELECT value FROM config WHERE uid = 2) + rr.bonus_level_for_combo AS level,
 MAX(r1.bonus_stat_per_level, r2.bonus_stat_per_level) AS level_bonus
 FROM combos c
 LEFT JOIN cards c1
