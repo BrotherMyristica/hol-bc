@@ -8,15 +8,18 @@ import TableHead from "@mui/material/TableHead";
 import Paper from "@mui/material/Paper";
 
 import Grid from "@mui/material/Grid2";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import { calculateValue } from "@/engine/sql";
 import GameCard from "./game-card";
 import ComboMap from "./combo-map";
 import GridOnIcon from "@mui/icons-material/GridOn";
 import IconButton from "@mui/material/IconButton";
+import CardDetail from "./card-detail";
+import { CardContext } from "./card-context";
 
 const DeckSummary = (props: { db: Worker; active: boolean }) => {
   const [mapOpen, setMapOpen] = useState(false);
+  const [detail, setDetail] = useState("");
   const [deck, setDeck] = useState([]);
   const [deckCombos, setDeckCombos] = useState([]);
 
@@ -45,12 +48,28 @@ const DeckSummary = (props: { db: Worker; active: boolean }) => {
     }
   }, [props.active, props.db, fetchData]);
 
+  const cardCtx = useContext(CardContext);
+
+  if (!cardCtx) {
+    return null;
+  }
+
+  const { combos, cardPool } = cardCtx;
+
   return (
     <>
+      <CardDetail
+        combos={combos}
+        card={detail}
+        cardAvailabilities={cardCtx.cardAvailabilities}
+        setCard={setDetail}
+        pool={cardPool}
+      />
       <ComboMap
         cards={deck}
         combos={deckCombos}
         open={mapOpen}
+        setCard={setDetail}
         close={() => setMapOpen(false)}
       />
       <Grid container rowSpacing={2} columnSpacing={10}>
@@ -69,7 +88,10 @@ const DeckSummary = (props: { db: Worker; active: boolean }) => {
                   {deck.map((item) => (
                     <TableRow key={item[0]}>
                       <TableCell align="center">
-                        <GameCard card={item[0]} />
+                        <GameCard
+                          card={item[0]}
+                          onClick={() => setDetail(item[0])}
+                        />
                       </TableCell>
                       <TableCell align="left">{item[1]}</TableCell>
                     </TableRow>
@@ -111,10 +133,16 @@ const DeckSummary = (props: { db: Worker; active: boolean }) => {
                   {deckCombos.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <GameCard card={item[0]} />
+                        <GameCard
+                          card={item[0]}
+                          onClick={() => setDetail(item[0])}
+                        />
                       </TableCell>
                       <TableCell>
-                        <GameCard card={item[1]} />
+                        <GameCard
+                          card={item[1]}
+                          onClick={() => setDetail(item[1])}
+                        />
                       </TableCell>
 
                       <TableCell>
@@ -124,6 +152,7 @@ const DeckSummary = (props: { db: Worker; active: boolean }) => {
                           attack={item[5]}
                           defense={item[6]}
                           showDetails={true}
+                          onClick={() => setDetail(item[2])}
                         />
                       </TableCell>
 

@@ -66,6 +66,7 @@ const CardDetail = (props: {
       open={props.card !== ""}
       onClose={() => props.setCard("")}
       scroll="paper"
+      sx={{ zIndex: 1400 }}
     >
       <DialogActions>
         <IconButton

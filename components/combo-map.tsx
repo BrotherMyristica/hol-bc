@@ -17,6 +17,7 @@ import GameCard from "./game-card";
 
 const ComboMap = (props: {
   cards: [string, number][];
+  setCard: (card: string) => void;
   combos: [string, string, string, string, number, number, number, number][];
   open: boolean;
   close: () => void;
@@ -66,7 +67,7 @@ const ComboMap = (props: {
                     key={e[0]}
                     sx={{ borderBottom: "2px solid black" }}
                   >
-                    <GameCard card={e[0]} />
+                    <GameCard card={e[0]} onClick={() => props.setCard(e[0])} />
                   </TableCell>
                 ))}
               </TableRow>
@@ -75,7 +76,10 @@ const ComboMap = (props: {
               {cards.map((d1, rowIndex) => (
                 <TableRow key={rowIndex}>
                   <TableCell sx={{ borderRight: "2px solid black" }}>
-                    <GameCard card={d1[0]} />
+                    <GameCard
+                      card={d1[0]}
+                      onClick={() => props.setCard(d1[0])}
+                    />
                   </TableCell>
                   {cards.map((d2, colIndex) => {
                     const lookupKey = String([d1[0], d2[0]].toSorted());
@@ -92,6 +96,7 @@ const ComboMap = (props: {
                             attack={combo[5]}
                             defense={combo[6]}
                             showDetails={true}
+                            onClick={() => props.setCard(combo[2])}
                           />
                         ) : (
                           ""
