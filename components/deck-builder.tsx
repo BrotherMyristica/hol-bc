@@ -7,6 +7,8 @@ import TableRow from "@mui/material/TableRow";
 import TableHead from "@mui/material/TableHead";
 import Paper from "@mui/material/Paper";
 
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid2";
@@ -18,10 +20,12 @@ import Stack from "@mui/material/Stack";
 
 const DeckBuilder = (props: { db: Worker; active: boolean }) => {
   const [available, setAvailable] = useState([]);
+  const [sortSynergy, setSortSynergy] = useState(true);
   const [deck, setDeck] = useState([]);
 
-  const selectDeckSql =
-    "SELECT a.card, a.amount, COALESCE(s.relative_synergy, 0) FROM available_cards a LEFT JOIN deck_synergy s on a.card = s.new_card ORDER BY (a.amount > 0) DESC, s.relative_synergy DESC, card; SELECT uid, card FROM deck ORDER BY uid";
+  const selectDeckSql = `SELECT a.card, a.amount, COALESCE(s.relative_synergy, 0) FROM available_cards a LEFT JOIN deck_synergy s on a.card = s.new_card ORDER BY (a.amount > 0) DESC, ${
+    sortSynergy ? "s.relative_synergy DESC" : "a.card"
+  }, card; SELECT uid, card FROM deck ORDER BY uid`;
 
   const fetchData = useCallback(() => {
     props.db.onmessage = (event) => {
@@ -38,7 +42,7 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
       action: "exec",
       sql: `${calculateValue} ${selectDeckSql}`,
     });
-  }, [props.db]);
+  }, [props.db, selectDeckSql]);
 
   const addBestCard = () => {
     props.db.postMessage({
@@ -130,6 +134,19 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
         <Grid size={7}>
           <Paper sx={{ padding: "5px" }}>
             <h4 style={{ textAlign: "center" }}>Available Cards</h4>
+            <Grid container justifyContent="center">
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={sortSynergy}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setSortSynergy(event.target.checked);
+                    }}
+                  />
+                }
+                label="Sort by Synergy"
+              />
+            </Grid>
             <TableContainer>
               <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
                 <TableHead>
