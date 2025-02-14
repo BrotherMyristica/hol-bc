@@ -23,10 +23,16 @@ import Opponents from "@/components/opponents";
 
 const ImportButton = (props: { importDeck: (arg0: string) => void }) => {
   const deckFromUrl = useSearchParams().get("deck");
+  const importFunction = props.importDeck;
+  useEffect(() => {
+    if (deckFromUrl) {
+      importFunction(deckFromUrl);
+    }
+  }, [deckFromUrl, importFunction]);
   return (
     <Button
       color="inherit"
-      onClick={() => deckFromUrl && props.importDeck(deckFromUrl)}
+      onClick={() => deckFromUrl && importFunction(deckFromUrl)}
       disabled={deckFromUrl === null}
     >
       Import Deck
