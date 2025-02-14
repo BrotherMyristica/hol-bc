@@ -31,8 +31,14 @@ export interface ICardPool {
   reward: string;
 }
 
+export interface ICardAvailabilities {
+  card: string;
+  availability: string;
+}
+
 export const CardContext = createContext<null | {
   cards: ICardDetails[];
+  cardAvailabilities: ICardAvailabilities[];
   combos: ICombos[];
   cardPool: ICardPool[];
 }>(null);
@@ -40,6 +46,7 @@ export const CardContext = createContext<null | {
 const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
   const [cardData, setCardData] = useState<null | {
     cards: ICardDetails[];
+    cardAvailabilities: ICardAvailabilities[];
     combos: ICombos[];
     cardPool: ICardPool[];
   }>(null);
@@ -48,8 +55,9 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
     props.db.onmessage = (event) => {
       if (event.data.id === "select_card_data") {
         const d = event.data.results[0].values;
-        const c = event.data.results[1].values;
-        const p = event.data.results[2].values;
+        const a = event.data.results[1].values;
+        const c = event.data.results[2].values;
+        const p = event.data.results[3].values;
         setCardData({
           cards: d.map(
             (
@@ -65,6 +73,10 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
               base_defense: e[5],
             })
           ),
+          cardAvailabilities: a.map((e: [string, string]) => ({
+            card: e[0],
+            availability: e[1],
+          })),
           combos: c.map((e: [string, string, string], index: number) => ({
             id: index,
             card1: e[0],
@@ -92,6 +104,8 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
     const restoreSQL = assembleRestoreSQL();
     const selectCardsSQL =
       "SELECT card, rarity, is_basic, is_mergeresult, base_attack, base_defense FROM cards ORDER BY card;";
+    const selectCardAvailabilitiesSQL =
+      "SELECT card, availability FROM card_availabilities;";
     const selectCombosSQL =
       "SELECT card1, card2, result FROM combos ORDER BY card1, card2;";
     const selectPoolSQL =
@@ -99,7 +113,7 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
     props.db.postMessage({
       id: "select_card_data",
       action: "exec",
-      sql: `${restoreSQL} ${selectCardsSQL} ${selectCombosSQL} ${selectPoolSQL}`,
+      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL}`,
     });
   }, [props.db]);
 

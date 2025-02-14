@@ -8,7 +8,12 @@ import {
 
 import Grid from "@mui/material/Grid2";
 import { useContext, useState } from "react";
-import { CardContext, ICardDetails, ICombos } from "./card-context";
+import {
+  CardContext,
+  ICardAvailabilities,
+  ICardDetails,
+  ICombos,
+} from "./card-context";
 import GameCard from "./game-card";
 import CardDetail from "./card-detail";
 import Stack from "@mui/material/Stack";
@@ -31,6 +36,7 @@ const CustomToolbar = (props: { filename: string; text: string }) => {
 const CardsGrid = (props: {
   setCard: (arg0: string) => void;
   cards: ICardDetails[];
+  cardAvailabilities: ICardAvailabilities[];
 }) => {
   const columns: GridColDef[] = [
     {
@@ -198,19 +204,24 @@ const Encyclopedia = () => {
     return null;
   }
 
-  const { cards, combos, cardPool } = cardCtx;
+  const { cards, cardAvailabilities, combos, cardPool } = cardCtx;
   return (
     <>
       <CardDetail
         combos={combos}
         card={detail}
+        cardAvailabilities={cardAvailabilities}
         setCard={setDetail}
         pool={cardPool}
       />
       <Grid container rowSpacing={2} columnSpacing={10}>
         <Grid size={4}>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <CardsGrid cards={cards} setCard={setDetail} />
+            <CardsGrid
+              cards={cards}
+              cardAvailabilities={cardAvailabilities}
+              setCard={setDetail}
+            />
           </div>
         </Grid>
         <Grid size={8}>

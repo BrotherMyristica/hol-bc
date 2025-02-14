@@ -21,7 +21,7 @@ const Opponents = () => {
     return null;
   }
 
-  const { combos, cardPool } = cardCtx;
+  const { combos, cardAvailabilities, cardPool } = cardCtx;
 
   const sortedCardPool = cardPool.toSorted(
     (a, b) => 100 * a.world + a.wins - 100 * b.world - b.wins
@@ -49,6 +49,7 @@ const Opponents = () => {
       <CardDetail
         combos={combos}
         card={detail}
+        cardAvailabilities={cardAvailabilities}
         setCard={setDetail}
         pool={cardPool}
       />

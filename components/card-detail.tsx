@@ -26,12 +26,13 @@ import Dialog from "@mui/material/Dialog";
 import CloseIcon from "@mui/icons-material/Close";
 
 import GameCard from "./game-card";
-import { ICardPool, ICombos } from "./card-context";
+import { ICardAvailabilities, ICardPool, ICombos } from "./card-context";
 
 const CardDetail = (props: {
   card: string;
   setCard: (card: string) => void;
   combos: ICombos[];
+  cardAvailabilities: ICardAvailabilities[];
   pool: ICardPool[];
 }) => {
   const filteredCombosWith = props.combos
@@ -48,6 +49,16 @@ const CardDetail = (props: {
     (p: ICardPool) => p.reward === props.card
   );
 
+  const filteredAvailabilities = props.cardAvailabilities
+    .filter((a: ICardAvailabilities) => {
+      return a.card === props.card;
+    })
+    .map((a: ICardAvailabilities) => a.availability);
+
+  const notFarmableMessage =
+    filteredAvailabilities.length > 0
+      ? `Event Card: ${filteredAvailabilities.join(", ")}`
+      : "This card cannot be won from opponents.";
   return (
     <Dialog
       fullWidth={true}
@@ -74,7 +85,7 @@ const CardDetail = (props: {
               </AccordionSummary>
               <AccordionDetails sx={{ textAlign: "center" }}>
                 {filteredPool.length < 1 ? (
-                  <p>This card cannot be won from opponents.</p>
+                  <p>{notFarmableMessage}</p>
                 ) : (
                   <TableContainer>
                     <Table sx={{ marginTop: "1em" }} size="small">
