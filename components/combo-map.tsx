@@ -10,12 +10,20 @@ import {
   DialogContent,
   IconButton,
 } from "@mui/material";
+
 import Dialog from "@mui/material/Dialog";
 import CloseIcon from "@mui/icons-material/Close";
 
 import GameCard from "./game-card";
 import { useMemo, useState } from "react";
 import { useInView } from "react-intersection-observer";
+
+const stickyHeader = {
+  position: "sticky",
+  left: 0,
+  background: "white",
+  zIndex: "9999",
+};
 
 const ComboMapRow = (props: {
   cards: [string, number][];
@@ -53,7 +61,13 @@ const ComboMapRow = (props: {
     <TableRow ref={ref} sx={{ height: "4em" }}>
       {isInView && (
         <>
-          <TableCell sx={{ borderRight: "2px solid black", padding: "8px" }}>
+          <TableCell
+            sx={{
+              borderRight: "2px solid black",
+              padding: "8px",
+              ...stickyHeader,
+            }}
+          >
             <GameCard
               card={props.d1[0]}
               onClick={() => props.setCard(props.d1[0])}
@@ -113,16 +127,20 @@ const ComboMap = (props: {
           <CloseIcon />
         </IconButton>
       </DialogActions>
-      <DialogContent>
+      <DialogContent
+        sx={{ paddingTop: 0, paddingLeft: 0, borderLeft: "24px solid white" }}
+      >
         {props.open && (
           <div style={{ minHeight: "calc(90vh - 100px)" }}>
-            <Table sx={{ width: "100%" }}>
+            <Table stickyHeader sx={{ width: "100%" }}>
               <TableHead>
                 <TableRow>
                   <TableCell
                     sx={{
                       borderBottom: "2px solid black",
                       borderRight: "2px solid black",
+                      ...stickyHeader,
+                      zIndex: 99999,
                     }}
                   >
                     Combo Map
@@ -130,7 +148,10 @@ const ComboMap = (props: {
                   {cards.map((e) => (
                     <TableCell
                       key={e[0]}
-                      sx={{ borderBottom: "2px solid black", padding: "8px" }}
+                      sx={{
+                        borderBottom: "2px solid black",
+                        padding: "8px",
+                      }}
                     >
                       <GameCard
                         card={e[0]}
