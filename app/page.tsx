@@ -22,14 +22,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Opponents from "@/components/opponents";
 import GameMechanics from "@/components/game-mechanics";
 
-const ImportButton = (props: { importDeck: (arg0: string) => void }) => {
+const ImportButton = (props: {
+  importDeck: (arg0: string) => void;
+  disableAutoImport: boolean;
+  setDisableAutoImport: (_: boolean) => void;
+}) => {
   const deckFromUrl = useSearchParams().get("deck");
   const importFunction = props.importDeck;
+  const { disableAutoImport, setDisableAutoImport } = props;
   useEffect(() => {
-    if (deckFromUrl) {
+    if (deckFromUrl && !disableAutoImport) {
       importFunction(deckFromUrl);
+      setDisableAutoImport(true);
     }
-  }, [deckFromUrl, importFunction]);
+  }, [deckFromUrl, importFunction, disableAutoImport, setDisableAutoImport]);
   return (
     <Button
       color="inherit"
@@ -43,6 +49,7 @@ const ImportButton = (props: { importDeck: (arg0: string) => void }) => {
 
 const Home = () => {
   const [page, setPage] = useState("collection");
+  const [disableAutoImport, setDisableAutoImport] = useState(false);
   const [db, setDb] = useState<null | Worker>(null);
   const router = useRouter();
   //const [error, setError] = useState<null | string>(null);
@@ -81,6 +88,7 @@ const Home = () => {
 
   const getPermalink = () => {
     const link = exportAsLink();
+    setDisableAutoImport(true);
     router.replace(link, { scroll: false });
   };
 
@@ -106,7 +114,11 @@ const Home = () => {
             HoL: BC
           </Typography>
           <Suspense>
-            <ImportButton importDeck={importDeck} />
+            <ImportButton
+              importDeck={importDeck}
+              disableAutoImport={disableAutoImport}
+              setDisableAutoImport={setDisableAutoImport}
+            />
           </Suspense>
           <Button color="inherit" onClick={() => getPermalink()}>
             Get Link
