@@ -16,6 +16,68 @@ import GridOnIcon from "@mui/icons-material/GridOn";
 import IconButton from "@mui/material/IconButton";
 import CardDetail from "./card-detail";
 import { CardContext } from "./card-context";
+import { useInView } from "react-intersection-observer";
+
+type TComboItem = [
+  string,
+  string,
+  string,
+  string,
+  number,
+  number,
+  number,
+  number
+];
+
+const ComboRow = (props: {
+  setDetail: (_: string) => void;
+  item: TComboItem;
+}) => {
+  const [isInView, setIsInView] = useState(false);
+  const { ref } = useInView({
+    onChange: (inView) => {
+      if (inView) {
+        setIsInView(true);
+      }
+    },
+    triggerOnce: true,
+  });
+  return (
+    <TableRow ref={ref} sx={{ height: "3.9em" }}>
+      {isInView && (
+        <>
+          <TableCell>
+            <GameCard
+              card={props.item[0]}
+              onClick={() => props.setDetail(props.item[0])}
+            />
+          </TableCell>
+          <TableCell>
+            <GameCard
+              card={props.item[1]}
+              onClick={() => props.setDetail(props.item[1])}
+            />
+          </TableCell>
+
+          <TableCell>
+            <GameCard
+              card={props.item[2]}
+              level={props.item[4]}
+              attack={props.item[5]}
+              defense={props.item[6]}
+              showDetails={true}
+              onClick={() => props.setDetail(props.item[2])}
+            />
+          </TableCell>
+
+          <TableCell align="center">
+            {Math.round(100 * props.item[7]) / 100}
+          </TableCell>
+        </>
+      )}
+    </TableRow>
+  );
+};
 
 const DeckSummary = (props: { db: Worker; active: boolean }) => {
   const [mapOpen, setMapOpen] = useState(false);
@@ -68,105 +130,79 @@ const DeckSummary = (props: { db: Worker; active: boolean }) => {
       <ComboMap
         cards={deck}
         combos={deckCombos}
-        open={mapOpen}
+        open={mapOpen && detail === ""}
         setCard={setDetail}
         close={() => setMapOpen(false)}
       />
-      <Grid container rowSpacing={2} columnSpacing={10}>
-        <Grid size={4}>
-          <Paper sx={{ padding: "5px" }}>
-            <h4 style={{ textAlign: "center" }}>Deck</h4>
-            <TableContainer>
-              <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="center">Card</TableCell>
-                    <TableCell align="left">Amount</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {deck.map((item) => (
-                    <TableRow key={item[0]}>
-                      <TableCell align="center">
-                        <GameCard
-                          card={item[0]}
-                          onClick={() => setDetail(item[0])}
-                        />
-                      </TableCell>
-                      <TableCell align="left">{item[1]}</TableCell>
+      {detail === "" && mapOpen === false && (
+        <Grid container rowSpacing={2} columnSpacing={10}>
+          <Grid size={4}>
+            <Paper sx={{ padding: "5px" }}>
+              <h4 style={{ textAlign: "center" }}>Deck</h4>
+              <TableContainer>
+                <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="center">Card</TableCell>
+                      <TableCell align="left">Amount</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-        <Grid size={8}>
-          <Paper
-            sx={{ padding: "5px", minHeight: "90vh", position: "relative" }}
-          >
-            <h4 style={{ textAlign: "center" }}>Combos</h4>
-            <IconButton
-              sx={{
-                borderRadius: "5px",
-                position: "absolute",
-                top: "15px",
-                right: "15px",
-              }}
-              color="primary"
-              onClick={() => setMapOpen(true)}
-              disabled={deckCombos.length < 1}
+                  </TableHead>
+                  <TableBody>
+                    {deck.map((item) => (
+                      <TableRow key={item[0]}>
+                        <TableCell align="center">
+                          <GameCard
+                            card={item[0]}
+                            onClick={() => setDetail(item[0])}
+                          />
+                        </TableCell>
+                        <TableCell align="left">{item[1]}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Grid>
+          <Grid size={8}>
+            <Paper
+              sx={{ padding: "5px", minHeight: "90vh", position: "relative" }}
             >
-              <GridOnIcon />
-            </IconButton>
-            <TableContainer>
-              <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Card 1</TableCell>
-                    <TableCell>Card 2</TableCell>
-                    <TableCell>Result</TableCell>
-                    <TableCell>Rating</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {deckCombos.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <GameCard
-                          card={item[0]}
-                          onClick={() => setDetail(item[0])}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <GameCard
-                          card={item[1]}
-                          onClick={() => setDetail(item[1])}
-                        />
-                      </TableCell>
-
-                      <TableCell>
-                        <GameCard
-                          card={item[2]}
-                          level={item[4]}
-                          attack={item[5]}
-                          defense={item[6]}
-                          showDetails={true}
-                          onClick={() => setDetail(item[2])}
-                        />
-                      </TableCell>
-
-                      <TableCell align="center">
-                        {Math.round(100 * item[7]) / 100}
-                      </TableCell>
+              <h4 style={{ textAlign: "center" }}>Combos</h4>
+              <IconButton
+                sx={{
+                  borderRadius: "5px",
+                  position: "absolute",
+                  top: "15px",
+                  right: "15px",
+                }}
+                color="primary"
+                onClick={() => setMapOpen(true)}
+                disabled={deckCombos.length < 1}
+              >
+                <GridOnIcon />
+              </IconButton>
+              <TableContainer>
+                <Table sx={{ width: "100%", marginTop: "1em" }} size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Card 1</TableCell>
+                      <TableCell>Card 2</TableCell>
+                      <TableCell>Result</TableCell>
+                      <TableCell>Rating</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
+                  </TableHead>
+                  <TableBody>
+                    {deckCombos.map((item, index) => (
+                      <ComboRow key={index} item={item} setDetail={setDetail} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
     </>
   );
 };

@@ -49,8 +49,6 @@ const GameMechanics = () => {
               <TableRow key={index}>
                 <TableCell sx={{ textAlign: "right" }}>{e.rarity}</TableCell>
                 {Object.entries(e).map(([k, v]) => {
-                  console.log(k);
-                  console.log(v);
                   if (k === "rarity") {
                     return null;
                   }
@@ -101,8 +99,6 @@ const GameMechanics = () => {
               <TableRow key={index}>
                 <TableCell sx={{ textAlign: "right" }}>{e.rarity}</TableCell>
                 {Object.entries(e).map(([k, v]) => {
-                  console.log(k);
-                  console.log(v);
                   if (k === "rarity") {
                     return null;
                   }

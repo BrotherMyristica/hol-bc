@@ -55,6 +55,7 @@ export interface IDustRecycle {
 
 export const CardContext = createContext<null | {
   cards: ICardDetails[];
+  cardsByName: Record<string, ICardDetails>;
   cardAvailabilities: ICardAvailabilities[];
   combos: ICombos[];
   cardPool: ICardPool[];
@@ -65,6 +66,7 @@ export const CardContext = createContext<null | {
 const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
   const [cardData, setCardData] = useState<null | {
     cards: ICardDetails[];
+    cardsByName: Record<string, ICardDetails>;
     cardAvailabilities: ICardAvailabilities[];
     combos: ICombos[];
     cardPool: ICardPool[];
@@ -81,20 +83,25 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
         const p = event.data.results[3].values;
         const du = event.data.results[4].values;
         const dr = event.data.results[5].values;
+        const cards: ICardDetails[] = d.map(
+          (
+            e: [string, Rarities, boolean, boolean, number, number],
+            index: number
+          ) => ({
+            id: index,
+            card: e[0],
+            rarity: e[1],
+            is_basic: e[2],
+            is_mergeresult: e[3],
+            base_attack: e[4],
+            base_defense: e[5],
+          })
+        );
         setCardData({
-          cards: d.map(
-            (
-              e: [string, Rarities, boolean, boolean, number, number],
-              index: number
-            ) => ({
-              id: index,
-              card: e[0],
-              rarity: e[1],
-              is_basic: e[2],
-              is_mergeresult: e[3],
-              base_attack: e[4],
-              base_defense: e[5],
-            })
+          cards,
+          cardsByName: cards.reduce(
+            (previous, current) => ({ ...previous, [current.card]: current }),
+            {}
           ),
           cardAvailabilities: a.map((e: [string, string]) => ({
             card: e[0],

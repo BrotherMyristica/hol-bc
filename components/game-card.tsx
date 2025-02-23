@@ -1,7 +1,9 @@
+import { useInView } from "react-intersection-observer";
+
 import BoltIcon from "@mui/icons-material/Bolt";
 import ShieldIcon from "@mui/icons-material/Shield";
 
-import { MouseEventHandler, useContext } from "react";
+import { MouseEventHandler, useContext, useState } from "react";
 import { CardContext } from "./card-context";
 import Stack from "@mui/material/Stack";
 
@@ -18,13 +20,22 @@ const GameCard = (props: {
   showDetails?: boolean;
   level?: number;
 }) => {
+  const [isInView, setIsInView] = useState(false);
+  const { ref } = useInView({
+    onChange: (inView) => {
+      if (inView) {
+        setIsInView(true);
+      }
+    },
+    triggerOnce: true,
+  });
   const cards = useContext(CardContext);
 
   if (!cards) {
     return null;
   }
 
-  const cardDetails = cards.cards.filter((e) => e.card === props.card)[0];
+  const cardDetails = cards.cardsByName[props.card];
 
   const colors = {
     Common: "#CD7F32",
@@ -40,9 +51,10 @@ const GameCard = (props: {
 
   return (
     <div
-      className={`card ${props.disabled && "disabled"} ${
-        clickable && "clickable"
-      }`}
+      ref={ref}
+      className={`card ${props.showDetails && "detailcard"} ${
+        props.disabled && "disabled"
+      } ${clickable && "clickable"}`}
       onClick={clickable ? props.onClick : undefined}
     >
       <Stack>
@@ -53,7 +65,7 @@ const GameCard = (props: {
         >
           {props.card}
         </b>
-        {props.showDetails && (
+        {props.showDetails && isInView && (
           <Stack direction="row" spacing={1} sx={{ margin: "auto" }}>
             <div
               className="details"
@@ -98,6 +110,9 @@ const GameCard = (props: {
             min-width: 130px;
             max-width: 300px;
             margin: auto;
+          }
+          .detailcard {
+            min-height: 3.5em;
           }
           .card.clickable:hover {
             filter: drop-shadow(0px 0px 5px ${colors[cardDetails.rarity]}80);

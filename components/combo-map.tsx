@@ -14,16 +14,25 @@ import Dialog from "@mui/material/Dialog";
 import CloseIcon from "@mui/icons-material/Close";
 
 import GameCard from "./game-card";
+import { useMemo, useState } from "react";
+import { useInView } from "react-intersection-observer";
 
-const ComboMap = (props: {
+const ComboMapRow = (props: {
   cards: [string, number][];
   setCard: (card: string) => void;
   combos: [string, string, string, string, number, number, number, number][];
-  open: boolean;
-  close: () => void;
+  d1: [string, number];
 }) => {
-  const cards = props.cards ?? [];
-  const combos = props.combos ?? [];
+  const [isInView, setIsInView] = useState(false);
+  const { ref } = useInView({
+    onChange: (inView) => {
+      if (inView) {
+        setIsInView(true);
+      }
+    },
+    triggerOnce: true,
+  });
+  const combos = useMemo(() => props.combos ?? [], [props.combos]);
   const comboLookup: {
     [key: string]: [
       string,
@@ -35,7 +44,62 @@ const ComboMap = (props: {
       number,
       number
     ];
-  } = combos.reduce((a, v) => ({ ...a, [String([v[0], v[1]])]: v }), {});
+  } = useMemo(
+    () => combos.reduce((a, v) => ({ ...a, [String([v[0], v[1]])]: v }), {}),
+    [combos]
+  );
+
+  return (
+    <TableRow ref={ref} sx={{ height: "4em" }}>
+      {isInView && (
+        <>
+          <TableCell sx={{ borderRight: "2px solid black", padding: "8px" }}>
+            <GameCard
+              card={props.d1[0]}
+              onClick={() => props.setCard(props.d1[0])}
+            />
+          </TableCell>
+          {props.cards.map((d2, colIndex) => {
+            const lookupKey = String([props.d1[0], d2[0]].toSorted());
+            const combo = comboLookup[lookupKey];
+            return (
+              <TableCell
+                key={colIndex}
+                sx={{
+                  borderRight: "1px solid rgba(224, 224, 224, 1)",
+                  padding: "8px",
+                }}
+              >
+                {combo ? (
+                  <GameCard
+                    card={combo[2]}
+                    level={combo[4]}
+                    attack={combo[5]}
+                    defense={combo[6]}
+                    showDetails={true}
+                    onClick={() => props.setCard(combo[2])}
+                  />
+                ) : (
+                  ""
+                )}
+              </TableCell>
+            );
+          })}
+        </>
+      )}
+    </TableRow>
+  );
+};
+
+const ComboMap = (props: {
+  cards: [string, number][];
+  setCard: (card: string) => void;
+  combos: [string, string, string, string, number, number, number, number][];
+  open: boolean;
+  close: () => void;
+}) => {
+  const cards = props.cards ?? [];
+
   return (
     <Dialog
       fullWidth={true}
@@ -50,65 +114,46 @@ const ComboMap = (props: {
         </IconButton>
       </DialogActions>
       <DialogContent>
-        <div style={{ minHeight: "calc(90vh - 100px)" }}>
-          <Table sx={{ width: "100%" }}>
-            <TableHead>
-              <TableRow>
-                <TableCell
-                  sx={{
-                    borderBottom: "2px solid black",
-                    borderRight: "2px solid black",
-                  }}
-                >
-                  Combo Map
-                </TableCell>
-                {cards.map((e) => (
+        {props.open && (
+          <div style={{ minHeight: "calc(90vh - 100px)" }}>
+            <Table sx={{ width: "100%" }}>
+              <TableHead>
+                <TableRow>
                   <TableCell
-                    key={e[0]}
-                    sx={{ borderBottom: "2px solid black" }}
+                    sx={{
+                      borderBottom: "2px solid black",
+                      borderRight: "2px solid black",
+                    }}
                   >
-                    <GameCard card={e[0]} onClick={() => props.setCard(e[0])} />
+                    Combo Map
                   </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {cards.map((d1, rowIndex) => (
-                <TableRow key={rowIndex}>
-                  <TableCell sx={{ borderRight: "2px solid black" }}>
-                    <GameCard
-                      card={d1[0]}
-                      onClick={() => props.setCard(d1[0])}
-                    />
-                  </TableCell>
-                  {cards.map((d2, colIndex) => {
-                    const lookupKey = String([d1[0], d2[0]].toSorted());
-                    const combo = comboLookup[lookupKey];
-                    return (
-                      <TableCell
-                        key={colIndex}
-                        sx={{ borderRight: "1px solid rgba(224, 224, 224, 1)" }}
-                      >
-                        {combo ? (
-                          <GameCard
-                            card={combo[2]}
-                            level={combo[4]}
-                            attack={combo[5]}
-                            defense={combo[6]}
-                            showDetails={true}
-                            onClick={() => props.setCard(combo[2])}
-                          />
-                        ) : (
-                          ""
-                        )}
-                      </TableCell>
-                    );
-                  })}
+                  {cards.map((e) => (
+                    <TableCell
+                      key={e[0]}
+                      sx={{ borderBottom: "2px solid black", padding: "8px" }}
+                    >
+                      <GameCard
+                        card={e[0]}
+                        onClick={() => props.setCard(e[0])}
+                      />
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHead>
+              <TableBody>
+                {cards.map((d1, rowIndex) => (
+                  <ComboMapRow
+                    key={rowIndex}
+                    cards={cards}
+                    combos={props.combos}
+                    setCard={props.setCard}
+                    d1={d1}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
