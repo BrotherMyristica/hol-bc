@@ -13,7 +13,7 @@ import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid2";
 import { useState, useEffect, useCallback } from "react";
-import { addBestCardSql, calculateValue } from "@/engine/sql";
+import { addAllCardsSql, addBestCardSql, calculateValue } from "@/engine/sql";
 import GameCard from "./game-card";
 import { setDeckAll } from "@/engine/storage";
 import Stack from "@mui/material/Stack";
@@ -90,6 +90,14 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
     });
   };
 
+  const addAllCards = () => {
+    props.db.postMessage({
+      id: "select_deck",
+      action: "exec",
+      sql: `${addAllCardsSql} ${selectDeckSql}`,
+    });
+  };
+
   useEffect(() => {
     if (props.active && props.db) {
       fetchData();
@@ -112,6 +120,14 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
               disabled={deck.length < 1}
             >
               Clear deck
+            </Button>
+            <Button
+              sx={{ minWidth: "200px" }}
+              variant="outlined"
+              onClick={() => addAllCards()}
+              disabled={available.length < 1}
+            >
+              Add all cards
             </Button>
             <Button
               sx={{ minWidth: "200px" }}
@@ -185,8 +201,8 @@ const DeckBuilder = (props: { db: Worker; active: boolean }) => {
             <h4 style={{ textAlign: "center" }}>Deck ({deck.length})</h4>
             {deck.length > 30 && (
               <p style={{ textAlign: "center", color: "red" }}>
-                When there are too many cards in your deck it means your are
-                less likely to draw your good cards.
+                When there are too many cards in your deck it means you are less
+                likely to draw your good cards.
               </p>
             )}
             <TableContainer>

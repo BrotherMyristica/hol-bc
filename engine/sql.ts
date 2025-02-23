@@ -102,3 +102,15 @@ WHERE amount > 0
 ORDER BY relative_synergy DESC
 LIMIT 1;
 `;
+
+export const addAllCardsSql = `
+INSERT INTO deck (card)
+SELECT card FROM (
+SELECT card FROM available_cards WHERE amount >= 1
+UNION ALL
+SELECT card FROM available_cards WHERE amount >= 2
+UNION ALL
+SELECT card FROM available_cards WHERE amount >= 3
+) t
+ORDER BY card;
+`;

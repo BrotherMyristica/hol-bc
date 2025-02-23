@@ -36,11 +36,30 @@ export interface ICardAvailabilities {
   availability: string;
 }
 
+export interface IDustUpgrade {
+  rarity: string;
+  "1 → 2": number;
+  "2 → 3": number;
+  "3 → 4": number;
+  "4 → 5": number;
+}
+
+export interface IDustRecycle {
+  rarity: string;
+  "1": number;
+  "2": number;
+  "3": number;
+  "4": number;
+  "5": number;
+}
+
 export const CardContext = createContext<null | {
   cards: ICardDetails[];
   cardAvailabilities: ICardAvailabilities[];
   combos: ICombos[];
   cardPool: ICardPool[];
+  dustUpgrade: IDustUpgrade[];
+  dustRecycle: IDustRecycle[];
 }>(null);
 
 const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
@@ -49,6 +68,8 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
     cardAvailabilities: ICardAvailabilities[];
     combos: ICombos[];
     cardPool: ICardPool[];
+    dustUpgrade: IDustUpgrade[];
+    dustRecycle: IDustRecycle[];
   }>(null);
 
   const fetchData = useCallback(() => {
@@ -58,6 +79,8 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
         const a = event.data.results[1].values;
         const c = event.data.results[2].values;
         const p = event.data.results[3].values;
+        const du = event.data.results[4].values;
+        const dr = event.data.results[5].values;
         setCardData({
           cards: d.map(
             (
@@ -98,6 +121,25 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
               reward: e[6],
             })
           ),
+          dustUpgrade: du.map(
+            (e: [string, number, number, number, number]) => ({
+              rarity: e[0],
+              "1 → 2": e[1],
+              "2 → 3": e[2],
+              "3 → 4": e[3],
+              "4 → 5": e[4],
+            })
+          ),
+          dustRecycle: dr.map(
+            (e: [string, number, number, number, number, number]) => ({
+              rarity: e[0],
+              "1": e[1],
+              "2": e[2],
+              "3": e[3],
+              "4": e[4],
+              "5": e[5],
+            })
+          ),
         });
       }
     };
@@ -110,10 +152,14 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
       "SELECT card1, card2, result FROM combos ORDER BY card1, card2;";
     const selectPoolSQL =
       "SELECT world, enemy, stage, battle, enemy_name, wins, reward FROM card_pool ORDER BY world, enemy, stage, battle;";
+    const selectDustUpgradeSQL =
+      "SELECT rarity, `2`, `3`, `4`, `5` FROM dust_upgrade;";
+    const selectDustRecycleSQL =
+      "SELECT rarity, `1`, `2`, `3`, `4`, `5` FROM dust_recycle;";
     props.db.postMessage({
       id: "select_card_data",
       action: "exec",
-      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL}`,
+      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL} ${selectDustUpgradeSQL} ${selectDustRecycleSQL}`,
     });
   }, [props.db]);
 

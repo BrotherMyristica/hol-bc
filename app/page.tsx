@@ -20,6 +20,7 @@ import Button from "@mui/material/Button";
 import { clearSetting, exportAsLink, importFromLink } from "@/engine/storage";
 import { useRouter, useSearchParams } from "next/navigation";
 import Opponents from "@/components/opponents";
+import GameMechanics from "@/components/game-mechanics";
 
 const ImportButton = (props: { importDeck: (arg0: string) => void }) => {
   const deckFromUrl = useSearchParams().get("deck");
@@ -126,6 +127,7 @@ const Home = () => {
                   scrollButtons="auto"
                 >
                   <Tab label="Card Encyclopedia" value="cards" />
+                  <Tab label="Game Mechanics" value="mechanics" />
                   <Tab label="Opponents" value="opponents" />
                   <Tab label="Preferences" value="preferences" />
                   <Tab label="Card Collection" value="collection" />
@@ -139,6 +141,9 @@ const Home = () => {
               </Box>
               <TabPanel value="cards">
                 <Encyclopedia />
+              </TabPanel>
+              <TabPanel value="mechanics">
+                <GameMechanics />
               </TabPanel>
               <TabPanel value="opponents">
                 <Opponents />
