@@ -18,6 +18,7 @@ const GameCard = (props: {
   disabled?: boolean;
   onClick?: MouseEventHandler<HTMLDivElement>;
   showDetails?: boolean;
+  noCenter?: boolean;
   level?: number;
 }) => {
   const [isInView, setIsInView] = useState(false);
@@ -109,7 +110,7 @@ const GameCard = (props: {
             text-align: center;
             min-width: 130px;
             max-width: 300px;
-            margin: auto;
+            margin: ${props.noCenter ? "0" : "auto"};
           }
           .detailcard {
             min-height: 3.5em;

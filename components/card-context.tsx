@@ -53,7 +53,30 @@ export interface IDustRecycle {
   "5": number;
 }
 
-export const CardContext = createContext<null | {
+export interface IAbility {
+  ability: string;
+  combo_points: number;
+  effect: string;
+}
+
+export interface IQuestChest {
+  chest_number: number;
+  reward_type: string;
+  reward_amount: number;
+}
+
+interface IPlayerLevelReward {
+  reward_type: string;
+  reward_amount: number;
+}
+
+export interface IPlayerLevel {
+  level: number;
+  required_xp: number;
+  rewards: IPlayerLevelReward[];
+}
+
+interface IContext {
   cards: ICardDetails[];
   cardsByName: Record<string, ICardDetails>;
   cardAvailabilities: ICardAvailabilities[];
@@ -61,18 +84,16 @@ export const CardContext = createContext<null | {
   cardPool: ICardPool[];
   dustUpgrade: IDustUpgrade[];
   dustRecycle: IDustRecycle[];
-}>(null);
+  abilities: Record<string, Record<number, IAbility>>;
+  dailyQuestChests: Record<number, IQuestChest>;
+  weeklyQuestChests: Record<number, IQuestChest>;
+  playerLevels: IPlayerLevel[];
+}
+
+export const CardContext = createContext<null | IContext>(null);
 
 const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
-  const [cardData, setCardData] = useState<null | {
-    cards: ICardDetails[];
-    cardsByName: Record<string, ICardDetails>;
-    cardAvailabilities: ICardAvailabilities[];
-    combos: ICombos[];
-    cardPool: ICardPool[];
-    dustUpgrade: IDustUpgrade[];
-    dustRecycle: IDustRecycle[];
-  }>(null);
+  const [cardData, setCardData] = useState<null | IContext>(null);
 
   const fetchData = useCallback(() => {
     props.db.onmessage = (event) => {
@@ -83,6 +104,45 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
         const p = event.data.results[3].values;
         const du = event.data.results[4].values;
         const dr = event.data.results[5].values;
+        const abilities = event.data.results[6].values;
+        const dailyQuestChests = event.data.results[7].values;
+        const weeklyQuestChests = event.data.results[8].values;
+        const playerLevelsRaw: [] = event.data.results[9].values;
+        const playerLevelsTranslated = playerLevelsRaw.map(
+          (e: [number, number, string, number]) => ({
+            level: e[0],
+            required_xp: e[1],
+            reward_type: e[2],
+            reward_amount: e[3],
+          })
+        );
+        const playerLevelsObj: Record<number, IPlayerLevel> =
+          playerLevelsTranslated.reduce(
+            (acc: Record<number, IPlayerLevel>, cv) => {
+              const level = cv.level;
+              return {
+                ...acc,
+                [level]: {
+                  level: cv.level,
+                  required_xp: cv.required_xp,
+                  rewards: [
+                    ...(acc[level]?.rewards ?? []),
+                    {
+                      reward_type: cv.reward_type,
+                      reward_amount: cv.reward_amount,
+                    },
+                  ],
+                },
+              };
+            },
+            {}
+          );
+        const playerLevels = Object.keys(playerLevelsObj)
+          .map(Number)
+          .sort(function (a, b) {
+            return a - b;
+          })
+          .map((level: number) => playerLevelsObj[level]);
         const cards: ICardDetails[] = d.map(
           (
             e: [string, Rarities, boolean, boolean, number, number],
@@ -147,6 +207,67 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
               "5": e[5],
             })
           ),
+          abilities: abilities.reduce(
+            (
+              acc: Record<string, Record<number, IAbility>>,
+              cv: [string, number, string]
+            ) => {
+              const ability: string = cv[0];
+              const combo_points: number = cv[1];
+              const effect: string = cv[2];
+              return {
+                ...acc,
+                [ability]: {
+                  ...(acc[ability] ?? {}),
+                  [combo_points]: {
+                    ability,
+                    combo_points,
+                    effect,
+                  },
+                },
+              };
+            },
+            {}
+          ),
+          dailyQuestChests: dailyQuestChests.reduce(
+            (
+              acc: Record<number, IQuestChest>,
+              cv: [number, string, number]
+            ) => {
+              const chest_number: number = cv[0];
+              const reward_type: string = cv[1];
+              const reward_amount: number = cv[2];
+              return {
+                ...acc,
+                [chest_number]: {
+                  chest_number,
+                  reward_type,
+                  reward_amount,
+                },
+              };
+            },
+            {}
+          ),
+          weeklyQuestChests: weeklyQuestChests.reduce(
+            (
+              acc: Record<number, IQuestChest>,
+              cv: [number, string, number]
+            ) => {
+              const chest_number: number = cv[0];
+              const reward_type: string = cv[1];
+              const reward_amount: number = cv[2];
+              return {
+                ...acc,
+                [chest_number]: {
+                  chest_number,
+                  reward_type,
+                  reward_amount,
+                },
+              };
+            },
+            {}
+          ),
+          playerLevels,
         });
       }
     };
@@ -163,10 +284,17 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
       "SELECT rarity, `2`, `3`, `4`, `5` FROM dust_upgrade;";
     const selectDustRecycleSQL =
       "SELECT rarity, `1`, `2`, `3`, `4`, `5` FROM dust_recycle;";
+    const abilitiesSQL = "SELECT ability, combo_points, effect FROM abilities;";
+    const dailyQuestChestSQL =
+      "SELECT chest_number, reward_type, reward_amount FROM quest_chests WHERE quest_type = 'daily';";
+    const weeklyQuestChestSQL =
+      "SELECT chest_number, reward_type, reward_amount FROM quest_chests WHERE quest_type = 'weekly';";
+    const playerLevelSQL =
+      "SELECT level, required_xp, reward_type, reward_amount FROM player_level;";
     props.db.postMessage({
       id: "select_card_data",
       action: "exec",
-      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL} ${selectDustUpgradeSQL} ${selectDustRecycleSQL}`,
+      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL} ${selectDustUpgradeSQL} ${selectDustRecycleSQL} ${abilitiesSQL} ${dailyQuestChestSQL} ${weeklyQuestChestSQL} ${playerLevelSQL}`,
     });
   }, [props.db]);
 
