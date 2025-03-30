@@ -76,6 +76,14 @@ export interface IPlayerLevel {
   rewards: IPlayerLevelReward[];
 }
 
+export interface IEventQuest {
+  event_number: number;
+  event_name: string;
+  event_chapter: number;
+  quest_number: number;
+  quest_text: string;
+}
+
 interface IContext {
   cards: ICardDetails[];
   cardsByName: Record<string, ICardDetails>;
@@ -88,6 +96,7 @@ interface IContext {
   dailyQuestChests: Record<number, IQuestChest>;
   weeklyQuestChests: Record<number, IQuestChest>;
   playerLevels: IPlayerLevel[];
+  eventQuests: IEventQuest[];
 }
 
 export const CardContext = createContext<null | IContext>(null);
@@ -155,6 +164,15 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
             is_mergeresult: e[3],
             base_attack: e[4],
             base_defense: e[5],
+          })
+        );
+        const eventQuests = event.data.results[10].values.map(
+          (e: [number, string, number, number, string]) => ({
+            event_number: e[0],
+            event_name: e[1],
+            event_chapter: e[2],
+            quest_number: e[3],
+            quest_text: e[4],
           })
         );
         setCardData({
@@ -268,6 +286,7 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
             {}
           ),
           playerLevels,
+          eventQuests,
         });
       }
     };
@@ -291,10 +310,12 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
       "SELECT chest_number, reward_type, reward_amount FROM quest_chests WHERE quest_type = 'weekly';";
     const playerLevelSQL =
       "SELECT level, required_xp, reward_type, reward_amount FROM player_level;";
+    const eventQuestSQL =
+      "SELECT event_number, event_name, event_chapter, quest_number, quest_text FROM event_quests ORDER BY event_number, quest_number;";
     props.db.postMessage({
       id: "select_card_data",
       action: "exec",
-      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL} ${selectDustUpgradeSQL} ${selectDustRecycleSQL} ${abilitiesSQL} ${dailyQuestChestSQL} ${weeklyQuestChestSQL} ${playerLevelSQL}`,
+      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL} ${selectDustUpgradeSQL} ${selectDustRecycleSQL} ${abilitiesSQL} ${dailyQuestChestSQL} ${weeklyQuestChestSQL} ${playerLevelSQL} ${eventQuestSQL}`,
     });
   }, [props.db]);
 

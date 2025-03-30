@@ -2,6 +2,10 @@ import Container from "@mui/material/Container";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
 
 import {
   CardContext,
@@ -9,10 +13,11 @@ import {
   ICardDetails,
   IDustRecycle,
   IDustUpgrade,
+  IEventQuest,
   IPlayerLevel,
   IQuestChest,
 } from "./card-context";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import TableHead from "@mui/material/TableHead";
 import { TableCell, TableRow } from "@mui/material";
 import GameCard from "./game-card";
@@ -207,6 +212,71 @@ const Abilities = (props: {
   );
 };
 
+const EventQuestTable = (props: { eventQuests: IEventQuest[] }) => {
+  const events = useMemo(
+    () => [...new Set(props.eventQuests.map((e) => e.event_name))],
+    [props.eventQuests]
+  );
+  const quests = useMemo(
+    () =>
+      props.eventQuests.reduce(
+        (acc: Record<string, IEventQuest[]>, cv) => ({
+          ...acc,
+          [cv.event_name]: [...(acc[cv.event_name] ?? []), cv],
+        }),
+        {}
+      ),
+    [props.eventQuests]
+  );
+  const [selectedEvent, setSelectedEvent] = useState(events.at(-1) ?? "");
+  return (
+    <>
+      <FormControl fullWidth>
+        <InputLabel id="demo-simple-select-label">Event</InputLabel>
+        <Select
+          value={selectedEvent}
+          label="Event"
+          onChange={(e) => setSelectedEvent(e.target.value)}
+        >
+          {events.map((e, i) => (
+            <MenuItem key={i} value={e}>
+              {e}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <TableContainer>
+        <Table sx={{ marginTop: "1em", border: "1px solid lightgray" }}>
+          <TableHead>
+            <TableRow>
+              <TableCell
+                sx={{ textAlign: "right", backgroundColor: "lightgray" }}
+              >
+                Chapter - Quest number
+              </TableCell>
+              <TableCell
+                sx={{ textAlign: "left", backgroundColor: "lightgray" }}
+              >
+                Quest objective
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {(quests[selectedEvent] ?? []).map((q, i) => (
+              <TableRow key={i}>
+                <TableCell
+                  sx={{ textAlign: "right" }}
+                >{`${q.event_chapter}-${q.quest_number}`}</TableCell>
+                <TableCell sx={{ textAlign: "left" }}>{q.quest_text}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+};
+
 const QuestChest = (props: { questChests: Record<number, IQuestChest> }) => {
   const chests = Array.from({ length: 5 }, (_, i) => i + 1);
   return (
@@ -336,12 +406,18 @@ const GameMechanics = () => {
     dailyQuestChests,
     weeklyQuestChests,
     playerLevels,
+    eventQuests,
     combos,
     cardAvailabilities,
     cardPool,
   } = cardCtx;
 
   const sections = [
+    {
+      title: "Event quests",
+      component: EventQuestTable,
+      props: { eventQuests },
+    },
     {
       title: "Dust for upgrading/recycling cards",
       component: DustUpgradeRecycleTable,
