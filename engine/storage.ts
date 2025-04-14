@@ -3,7 +3,9 @@ import { compressToUTF16, decompressFromUTF16, compressToEncodedURIComponent, de
 interface IPreferences {
     1?: number,
     2?: number,
-    3?: number
+    3?: number,
+    4?: number,
+    5?: number
 }
 
 interface ICollection {
@@ -57,12 +59,12 @@ const loadSetting = () : ISetting => {
 }
 
 export const setPreference = (key: number, value: number) => {
-    if (![1,2,3].includes(key))
+    if (![1,2,3,4,5].includes(key))
     {
         return;
     }
     const setting = loadSetting();
-    setting.preferences[key as 1|2|3] = value;
+    setting.preferences[key as 1|2|3|4|5] = value;
     saveSetting(setting);
 }
 

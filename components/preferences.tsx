@@ -10,6 +10,8 @@ import BoltIcon from "@mui/icons-material/Bolt";
 import ShieldIcon from "@mui/icons-material/Shield";
 import GrainIcon from "@mui/icons-material/Grain";
 import CircleIcon from "@mui/icons-material/Circle";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Slider from "@mui/material/Slider";
 import { useState, useEffect, useCallback } from "react";
 import { validateInput } from "./number-validation";
@@ -137,6 +139,73 @@ const LevelPreference = (props: {
   );
 };
 
+const ValueThreshold = (props: {
+  update: (arg0: number) => void;
+  value: number;
+}) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseFloat(event.target.value);
+    if (!isNaN(newValue)) {
+      props.update(newValue);
+    }
+  };
+
+  return (
+    <TableRow>
+      <TableCell sx={{ border: "0" }}>Rating Threshold</TableCell>
+      <TableCell sx={{ border: "0" }}>
+        <TextField
+          sx={{ width: "100px" }}
+          type="number"
+          value={`${props.value}`}
+          onChange={handleChange}
+          variant="outlined"
+        />
+      </TableCell>
+    </TableRow>
+  );
+};
+
+const NoComboPenaltyPreference = (props: {
+  update: (arg0: number) => void;
+  value: number;
+}) => {
+  const handleChange = (event: Event, newValue: number | number[]) => {
+    props.update(Math.round(newValue as number) / 100);
+  };
+
+  const valuetext = (value: number) => {
+    return `${value}%`;
+  };
+
+  return (
+    <TableRow>
+      <TableCell sx={{ border: "0" }}>No Combo Penalty</TableCell>
+      <TableCell sx={{ border: "0" }}>
+        <Box sx={{ width: 250 }}>
+          <Stack
+            spacing={2}
+            direction="row"
+            sx={{ alignItems: "center", mb: 1 }}
+          >
+            <ArrowDropDownIcon />
+            <Slider
+              value={Math.round(100 * props.value)}
+              valueLabelFormat={valuetext}
+              onChange={handleChange}
+              valueLabelDisplay="on"
+              min={0}
+              max={100}
+              step={1}
+            />
+            <ArrowDropUpIcon />
+          </Stack>
+        </Box>
+      </TableCell>
+    </TableRow>
+  );
+};
+
 const Preferences = (props: { db: Worker; active: boolean }) => {
   const [config, setConfig] = useState<null | { [key: number]: number }>(null);
 
@@ -203,6 +272,18 @@ const Preferences = (props: { db: Worker; active: boolean }) => {
                 value={config[3]}
                 update={(v) => {
                   updatePreferences(3, v);
+                }}
+              />
+              <ValueThreshold
+                value={config[4]}
+                update={(v) => {
+                  updatePreferences(4, v);
+                }}
+              />
+              <NoComboPenaltyPreference
+                value={config[5]}
+                update={(v) => {
+                  updatePreferences(5, v);
                 }}
               />
             </TableBody>

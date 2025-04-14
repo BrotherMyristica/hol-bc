@@ -29,9 +29,9 @@ SELECT  card1, card2, result, rarity, level, attack, defense,
 power((attack * (SELECT value FROM config WHERE uid = 1) + defense * (1-(SELECT value FROM config WHERE uid = 1))) / 20.0, (SELECT value FROM config WHERE uid = 3)) as value
 FROM final_stats)
 INSERT INTO combo_values (card1, card2, result, rarity, level, attack, defense, value, multiplier, potential_value)
-SELECT card1, card2, result, rarity, level, attack, defense, value,
+SELECT card1, card2, result, rarity, level, attack, defense, (CASE WHEN value >= (SELECT value FROM config WHERE uid = 4) THEN value ELSE 0 END) AS value,
     COALESCE(c1.amount * c2.amount, 0) AS multiplier,
-	COALESCE(value * c1.amount * c2.amount, 0) AS potential_value
+	COALESCE((CASE WHEN value >= (SELECT value FROM config WHERE uid = 4) THEN value ELSE 0 END) * c1.amount * c2.amount, 0) AS potential_value
 FROM valued_combos v
 LEFT JOIN collection c1 ON v.card1 = c1.card
 LEFT JOIN collection c2 ON v.card2 = c2.card;
