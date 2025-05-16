@@ -57,7 +57,7 @@ const CardDetail = (props: {
 
   const notFarmableMessage =
     filteredAvailabilities.length > 0
-      ? `Event Card: ${filteredAvailabilities.join(", ")}`
+      ? `${filteredAvailabilities.join(", ")}`
       : "This card cannot be won from opponents.";
   return (
     <Dialog
@@ -100,7 +100,8 @@ const CardDetail = (props: {
                         {filteredPool.map((p: ICardPool, index: number) => (
                           <TableRow key={index}>
                             <TableCell align="center">
-                              {p.enemyName} ({p.world}-{p.enemy})
+                              {p.enemyName} ({p.world}-{p.enemy}, The {p.path}
+                              &apos;s path)
                             </TableCell>
 
                             <TableCell align="center">{p.wins}</TableCell>

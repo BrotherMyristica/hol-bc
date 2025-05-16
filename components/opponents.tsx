@@ -10,20 +10,19 @@ import TableContainer from "@mui/material/TableContainer";
 import { CardContext, ICardPool } from "./card-context";
 import { useContext, useState } from "react";
 import TableHead from "@mui/material/TableHead";
-import { TableCell, TableRow } from "@mui/material";
+import { Box, Tab, TableCell, TableRow } from "@mui/material";
 import GameCard from "./game-card";
 import CardDetail from "./card-detail";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 
-const Opponents = () => {
-  const [detail, setDetail] = useState("");
-  const cardCtx = useContext(CardContext);
-  if (!cardCtx) {
-    return null;
-  }
+const OpponentsOfPath = (props: {
+  path: string;
+  cardPool: ICardPool[];
+  setDetail: (arg0: string) => void;
+}) => {
+  const filteredCardPool = props.cardPool.filter((e) => e.path === props.path);
 
-  const { combos, cardAvailabilities, cardPool } = cardCtx;
-
-  const sortedCardPool = cardPool.toSorted(
+  const sortedCardPool = filteredCardPool.toSorted(
     (a, b) => 100 * a.world + a.wins - 100 * b.world - b.wins
   );
 
@@ -44,15 +43,9 @@ const Opponents = () => {
     }),
     {}
   );
+
   return (
-    <Container maxWidth="lg">
-      <CardDetail
-        combos={combos}
-        card={detail}
-        cardAvailabilities={cardAvailabilities}
-        setCard={setDetail}
-        pool={cardPool}
-      />
+    <>
       {Object.entries(cardPoolByWorld).map(([world, cardPoolByWins]) => (
         <Accordion key={world} defaultExpanded={world === "1"}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -88,7 +81,7 @@ const Opponents = () => {
                               <GameCard
                                 card={cardPool.reward}
                                 showDetails
-                                onClick={() => setDetail(cardPool.reward)}
+                                onClick={() => props.setDetail(cardPool.reward)}
                               />
                             </TableCell>
                           )
@@ -102,6 +95,55 @@ const Opponents = () => {
           </AccordionDetails>
         </Accordion>
       ))}
+    </>
+  );
+};
+
+const Opponents = () => {
+  const [detail, setDetail] = useState("");
+  const [tab, setTab] = useState("applicant");
+  const cardCtx = useContext(CardContext);
+  if (!cardCtx) {
+    return null;
+  }
+
+  const { combos, cardAvailabilities, cardPool } = cardCtx;
+
+  return (
+    <Container maxWidth="lg">
+      <CardDetail
+        combos={combos}
+        card={detail}
+        cardAvailabilities={cardAvailabilities}
+        setCard={setDetail}
+        pool={cardPool}
+      />
+      <TabContext value={tab}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <TabList
+            onChange={(_, v) => setTab(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            <Tab label="The applicant's path" value="applicant" />
+            <Tab label="The master's path" value="master" />
+          </TabList>
+        </Box>
+        <TabPanel value="applicant">
+          <OpponentsOfPath
+            path="applicant"
+            cardPool={cardPool}
+            setDetail={setDetail}
+          />
+        </TabPanel>
+        <TabPanel value="master">
+          <OpponentsOfPath
+            path="master"
+            cardPool={cardPool}
+            setDetail={setDetail}
+          />
+        </TabPanel>
+      </TabContext>
     </Container>
   );
 };

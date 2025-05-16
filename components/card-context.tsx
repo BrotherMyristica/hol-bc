@@ -22,6 +22,7 @@ export interface ICombos {
 
 export interface ICardPool {
   id: number;
+  path: string;
   world: number;
   enemy: number;
   stage: number;
@@ -193,17 +194,27 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
           })),
           cardPool: p.map(
             (
-              e: [number, number, number, number, string, number, string],
+              e: [
+                number,
+                string,
+                number,
+                number,
+                number,
+                string,
+                number,
+                string
+              ],
               index: number
             ) => ({
               id: index,
-              world: e[0],
-              enemy: e[1],
-              stage: e[2],
-              battle: e[3],
-              enemyName: e[4],
-              wins: e[5],
-              reward: e[6],
+              path: e[0],
+              world: e[1],
+              enemy: e[2],
+              stage: e[3],
+              battle: e[4],
+              enemyName: e[5],
+              wins: e[6],
+              reward: e[7],
             })
           ),
           dustUpgrade: du.map(
@@ -298,7 +309,7 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
     const selectCombosSQL =
       "SELECT card1, card2, result FROM combos ORDER BY card1, card2;";
     const selectPoolSQL =
-      "SELECT world, enemy, stage, battle, enemy_name, wins, reward FROM card_pool ORDER BY world, enemy, stage, battle;";
+      "SELECT path, world, enemy, stage, battle, enemy_name, wins, reward FROM card_pool ORDER BY path, world, enemy, stage, battle;";
     const selectDustUpgradeSQL =
       "SELECT rarity, `2`, `3`, `4`, `5` FROM dust_upgrade;";
     const selectDustRecycleSQL =
