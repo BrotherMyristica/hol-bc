@@ -12,11 +12,14 @@ import GrainIcon from "@mui/icons-material/Grain";
 import CircleIcon from "@mui/icons-material/Circle";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import Tooltip from "@mui/material/Tooltip";
 import Slider from "@mui/material/Slider";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { validateInput } from "./number-validation";
 import Container from "@mui/material/Container";
 import { setPreference } from "@/engine/storage";
+import CrossOverRangeSlider from "./range-slider";
+import SigmoidPlot from "./sigmoid-plot";
 
 const WeightPreference = (props: {
   update: (arg0: number) => void;
@@ -166,6 +169,122 @@ const ValueThreshold = (props: {
   );
 };
 
+const StatsThreshold = ({
+  label,
+  start,
+  end,
+  updateStart,
+  updateEnd,
+  updateK,
+  updateT,
+}: {
+  label: string;
+  start: number;
+  end: number;
+  updateStart: (arg0: number) => void;
+  updateEnd: (arg0: number) => void;
+  updateK: (arg0: number) => void;
+  updateT: (arg0: number) => void;
+}) => {
+  const updateKRef = useRef(updateK);
+  const updateTRef = useRef(updateT);
+
+  useEffect(() => {
+    updateKRef.current = updateK;
+    updateTRef.current = updateT;
+  });
+
+  const [thresholdValues, setThresholdValues] = useState<[number, number]>([
+    start,
+    end,
+  ]);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [k, t] = useMemo(() => {
+    const new_t = (thresholdValues[0] + thresholdValues[1]) / 2;
+    if (thresholdValues[0] === thresholdValues[1]) {
+      return [25, new_t];
+    }
+    if (thresholdValues[0] === 0 && thresholdValues[1] === 45) {
+      return [0, new_t];
+    }
+    const new_k = 2 / (thresholdValues[1] - thresholdValues[0]);
+    return [new_k, new_t];
+  }, [thresholdValues]);
+
+  useEffect(() => {
+    updateKRef.current(k);
+    updateTRef.current(t);
+  }, [k, t]);
+
+  return (
+    <TableRow>
+      <TableCell sx={{ border: "0" }}>{label}</TableCell>
+      <TableCell sx={{ border: "0" }}>
+        <Tooltip
+          open={isHovering || isDragging}
+          title={<SigmoidPlot k={k} t={t} width={500} height={300} />}
+          placement="top"
+          arrow
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: "offset",
+                  options: {
+                    offset: [0, 30],
+                  },
+                },
+              ],
+              sx: {
+                "& .MuiTooltip-tooltip": {
+                  maxWidth: "none",
+                  backgroundColor: "white",
+                  color: "black",
+                  border: "1px solid #dadde9",
+                  boxShadow: "0px 4px 8px rgba(0,0,0,0.1)",
+                },
+                "& .MuiTooltip-arrow": {
+                  color: "white",
+                },
+              },
+            },
+          }}
+        >
+          <Box
+            sx={{ width: 250 }}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+          >
+            <Stack
+              spacing={2}
+              direction="row"
+              sx={{ alignItems: "center", mb: 1 }}
+            >
+              <ArrowDropDownIcon />
+              <CrossOverRangeSlider
+                value={thresholdValues}
+                onChange={(e, v) => {
+                  setIsDragging(true);
+                  setThresholdValues(v);
+                  updateStart(v[0]);
+                  updateEnd(v[1]);
+                }}
+                onChangeCommitted={() => setIsDragging(false)}
+                valueLabelDisplay="on"
+                min={0}
+                max={45}
+                step={0.5}
+              />
+              <ArrowDropUpIcon />
+            </Stack>
+          </Box>
+        </Tooltip>
+      </TableCell>
+    </TableRow>
+  );
+};
+
 const NoComboPenaltyPreference = (props: {
   update: (arg0: number) => void;
   value: number;
@@ -253,42 +372,78 @@ const Preferences = (props: { db: Worker; active: boolean }) => {
   return (
     <Container maxWidth="sm">
       {config && (
-        <TableContainer>
-          <Table sx={{ width: "auto", marginTop: "1em" }}>
-            <TableBody>
-              <LevelPreference
-                value={config[2]}
-                update={(v) => {
-                  updatePreferences(2, v);
-                }}
-              />
-              <WeightPreference
-                value={config[1]}
-                update={(v) => {
-                  updatePreferences(1, v);
-                }}
-              />
-              <ExponentPreference
-                value={config[3]}
-                update={(v) => {
-                  updatePreferences(3, v);
-                }}
-              />
-              <ValueThreshold
-                value={config[4]}
-                update={(v) => {
-                  updatePreferences(4, v);
-                }}
-              />
-              <NoComboPenaltyPreference
-                value={config[5]}
-                update={(v) => {
-                  updatePreferences(5, v);
-                }}
-              />
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <>
+          <TableContainer>
+            <Table sx={{ width: "auto", marginTop: "1em" }}>
+              <TableBody>
+                <LevelPreference
+                  value={config[2]}
+                  update={(v) => {
+                    updatePreferences(2, v);
+                  }}
+                />
+                <WeightPreference
+                  value={config[1]}
+                  update={(v) => {
+                    updatePreferences(1, v);
+                  }}
+                />
+                <ExponentPreference
+                  value={config[3]}
+                  update={(v) => {
+                    updatePreferences(3, v);
+                  }}
+                />
+                <ValueThreshold
+                  value={config[4]}
+                  update={(v) => {
+                    updatePreferences(4, v);
+                  }}
+                />
+                <NoComboPenaltyPreference
+                  value={config[5]}
+                  update={(v) => {
+                    updatePreferences(5, v);
+                  }}
+                />
+                <StatsThreshold
+                  label="ATK Threshold"
+                  start={config[6]}
+                  end={config[7]}
+                  updateStart={(v) => {
+                    updatePreferences(6, v);
+                  }}
+                  updateEnd={(v) => {
+                    updatePreferences(7, v);
+                  }}
+                  updateK={(v) => {
+                    updatePreferences(8, v);
+                  }}
+                  updateT={(v) => {
+                    updatePreferences(9, v);
+                  }}
+                />
+                <StatsThreshold
+                  label="DEF Threshold"
+                  start={config[10]}
+                  end={config[11]}
+                  updateStart={(v) => {
+                    updatePreferences(10, v);
+                  }}
+                  updateEnd={(v) => {
+                    updatePreferences(11, v);
+                  }}
+                  updateK={(v) => {
+                    updatePreferences(12, v);
+                  }}
+                  updateT={(v) => {
+                    updatePreferences(13, v);
+                  }}
+                />
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
       )}
     </Container>
   );

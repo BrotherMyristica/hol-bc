@@ -1,11 +1,7 @@
 import { compressToUTF16, decompressFromUTF16, compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 
 interface IPreferences {
-    1?: number,
-    2?: number,
-    3?: number,
-    4?: number,
-    5?: number
+    [key: number]: number;
 }
 
 interface ICollection {
@@ -59,12 +55,8 @@ const loadSetting = () : ISetting => {
 }
 
 export const setPreference = (key: number, value: number) => {
-    if (![1,2,3,4,5].includes(key))
-    {
-        return;
-    }
     const setting = loadSetting();
-    setting.preferences[key as 1|2|3|4|5] = value;
+    setting.preferences[key] = value;
     saveSetting(setting);
 }
 
@@ -94,14 +86,14 @@ export const assembleRestoreSQL = (): string => {
     const setting = loadSetting();
 
     const preferenceSQL = Object.entries(setting.preferences).reduce((a, [k, v]) => { 
-        const key = parseInt(k) as 1|2|3;
+        const key = parseInt(k);
         const value = parseFloat(v);
         return `${a} UPDATE config SET value=${value} WHERE uid=${key};`
     }, "")
 
     const collectionSQL = Object.entries(setting.collection).reduce((a, [k, v]) => { 
         const key = k.replace(/[^A-Za-z0-9 ]/g, '');
-        const value = parseFloat(String(v));
+        const value = parseInt(String(v));
         return `${a} UPDATE collection SET amount=${value} WHERE card='${key}';`
     }, "")
 
