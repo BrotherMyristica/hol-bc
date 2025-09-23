@@ -3,6 +3,10 @@ import { createContext, useCallback, useEffect, useState } from "react";
 
 type Rarities = "Common" | "Uncommon" | "Rare" | "Epic";
 
+export interface IStatic {
+  last_update: string;
+}
+
 export interface ICardDetails {
   id: number;
   card: string;
@@ -85,6 +89,14 @@ export interface IEventQuest {
   quest_text: string;
 }
 
+export interface IMiniEventReward {
+  event_name: string;
+  reward_source: string;
+  reward_category: string;
+  reward: string;
+  value: number;
+}
+
 interface IContext {
   cards: ICardDetails[];
   cardsByName: Record<string, ICardDetails>;
@@ -98,6 +110,8 @@ interface IContext {
   weeklyQuestChests: Record<number, IQuestChest>;
   playerLevels: IPlayerLevel[];
   eventQuests: IEventQuest[];
+  miniEventRewards: IMiniEventReward[];
+  staticData: IStatic;
 }
 
 export const CardContext = createContext<null | IContext>(null);
@@ -176,6 +190,18 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
             quest_text: e[4],
           })
         );
+        const miniEventRewards = event.data.results[11].values.map(
+          (e: [string, string, string, string, number]) => ({
+            event_name: e[0],
+            reward_source: e[1],
+            reward_category: e[2],
+            reward: e[3],
+            value: e[4],
+          })
+        );
+        const staticData = {
+          last_update: event.data.results[12].values[0][0],
+        };
         setCardData({
           cards,
           cardsByName: cards.reduce(
@@ -298,6 +324,8 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
           ),
           playerLevels,
           eventQuests,
+          miniEventRewards,
+          staticData,
         });
       }
     };
@@ -323,10 +351,13 @@ const CardProvider = (props: { db: Worker; children: React.ReactNode }) => {
       "SELECT level, required_xp, reward_type, reward_amount FROM player_level;";
     const eventQuestSQL =
       "SELECT event_number, event_name, event_chapter, quest_number, quest_text FROM event_quests ORDER BY event_number, quest_number;";
+    const miniEventRewardsSQL =
+      "SELECT event_name, reward_source, reward_category, reward, value FROM minievent_rewards ORDER BY event_name, reward_source, reward_category, value DESC, reward;";
+    const staticSQL = "SELECT last_update from static WHERE id=1;";
     props.db.postMessage({
       id: "select_card_data",
       action: "exec",
-      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL} ${selectDustUpgradeSQL} ${selectDustRecycleSQL} ${abilitiesSQL} ${dailyQuestChestSQL} ${weeklyQuestChestSQL} ${playerLevelSQL} ${eventQuestSQL}`,
+      sql: `${restoreSQL} ${selectCardsSQL} ${selectCardAvailabilitiesSQL} ${selectCombosSQL} ${selectPoolSQL} ${selectDustUpgradeSQL} ${selectDustRecycleSQL} ${abilitiesSQL} ${dailyQuestChestSQL} ${weeklyQuestChestSQL} ${playerLevelSQL} ${eventQuestSQL} ${miniEventRewardsSQL} ${staticSQL}`,
     });
   }, [props.db]);
 

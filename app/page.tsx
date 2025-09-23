@@ -21,6 +21,7 @@ import { clearSetting, exportAsLink, importFromLink } from "@/engine/storage";
 import { useRouter, useSearchParams } from "next/navigation";
 import Opponents from "@/components/opponents";
 import GameMechanics from "@/components/game-mechanics";
+import LastUpdate from "@/components/last-update";
 
 const ImportButton = (props: {
   importDeck: (arg0: string) => void;
@@ -51,6 +52,7 @@ const Home = () => {
   const [page, setPage] = useState("collection");
   const [disableAutoImport, setDisableAutoImport] = useState(false);
   const [db, setDb] = useState<null | Worker>(null);
+  const [lastUpdate, setLastUpdate] = useState("");
   const router = useRouter();
   //const [error, setError] = useState<null | string>(null);
 
@@ -109,28 +111,47 @@ const Home = () => {
   return (
     <>
       <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h3" component="div" sx={{ flexGrow: 1 }}>
-            HoL: BC
-          </Typography>
-          <Suspense>
-            <ImportButton
-              importDeck={importDeck}
-              disableAutoImport={disableAutoImport}
-              setDisableAutoImport={setDisableAutoImport}
-            />
-          </Suspense>
-          <Button color="inherit" onClick={() => getPermalink()}>
-            Get Link
-          </Button>
-          <Button color="inherit" onClick={() => clearSavedData()}>
-            Clear saved Data
-          </Button>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          {/* Left section */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="h3" component="div">
+              HoL: BC
+            </Typography>
+          </Box>
+
+          {/* Middle section */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography
+              variant="subtitle1"
+              component="div"
+              sx={{ color: "#13599e" }}
+            >
+              {lastUpdate}
+            </Typography>
+          </Box>
+
+          {/* Right section */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Suspense>
+              <ImportButton
+                importDeck={importDeck}
+                disableAutoImport={disableAutoImport}
+                setDisableAutoImport={setDisableAutoImport}
+              />
+            </Suspense>
+            <Button color="inherit" onClick={() => getPermalink()}>
+              Get Link
+            </Button>
+            <Button color="inherit" onClick={() => clearSavedData()}>
+              Clear saved Data
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
       <Container maxWidth={false}>
         {db && (
           <CardProvider db={db}>
+            <LastUpdate setLastUpdate={setLastUpdate} />
             <TabContext value={page}>
               <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
                 <TabList
