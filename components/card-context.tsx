@@ -89,6 +89,12 @@ export interface IEventQuest {
   quest_text: string;
 }
 
+export interface ILootTableEntry {
+  reward_category: string;
+  reward: string;
+  value_text: string;
+}
+
 export interface IMiniEventReward {
   event_name: string;
   reward_source: string;

@@ -14,10 +14,12 @@ import {
   IDustRecycle,
   IDustUpgrade,
   IEventQuest,
+  ILootTableEntry,
+  IMiniEventReward,
   IPlayerLevel,
   IQuestChest,
 } from "./card-context";
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import TableHead from "@mui/material/TableHead";
 import { TableCell, TableRow } from "@mui/material";
 import GameCard from "./game-card";
@@ -277,6 +279,198 @@ const EventQuestTable = (props: { eventQuests: IEventQuest[] }) => {
   );
 };
 
+const LootTable = (props: {
+  lootTable: ILootTableEntry[];
+  col1: string;
+  col2: string;
+  setDetail: (card: string) => void;
+}) => {
+  return (
+    <>
+      <TableContainer>
+        <Table sx={{ marginTop: "1em", border: "1px solid lightgray" }}>
+          <TableHead>
+            <TableRow>
+              <TableCell
+                sx={{ textAlign: "center", backgroundColor: "lightgray" }}
+              >
+                {props.col1}
+              </TableCell>
+              <TableCell
+                sx={{ textAlign: "center", backgroundColor: "lightgray" }}
+              >
+                {props.col2}
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {props.lootTable.map((l, i) => (
+              <TableRow key={i}>
+                <TableCell sx={{ textAlign: "center" }}>
+                  {l.reward_category === "Card" ? (
+                    <GameCard
+                      card={l.reward}
+                      showDetails
+                      onClick={() => props.setDetail(l.reward)}
+                    />
+                  ) : (
+                    l.reward
+                  )}
+                </TableCell>
+                <TableCell sx={{ textAlign: "center" }}>
+                  {l.value_text}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+};
+
+const MiniEventData = (props: {
+  miniEventRewards: IMiniEventReward[];
+  setDetail: (card: string) => void;
+}) => {
+  const events = useMemo(
+    () => [...new Set(props.miniEventRewards.map((e) => e.event_name))],
+    [props.miniEventRewards]
+  );
+  const [selectedEvent, setSelectedEvent] = useState(events.at(-1) ?? "");
+
+  const calculateSignificantDigits = useCallback(
+    (number: number, relativeError: number = 0.029, minDigits: number = 0) => {
+      if (number === 0) {
+        return 0;
+      }
+      const absNumber = Math.abs(number);
+      const firstDigit = Math.floor(Math.log10(absNumber)) + 1;
+      const nthDigit = Math.min(
+        minDigits,
+        Math.floor(Math.log10(absNumber * relativeError))
+      );
+      const significantDigits = firstDigit - nthDigit;
+      return significantDigits;
+    },
+    []
+  );
+
+  const formatValueText = useCallback(
+    <T extends { value: number }>(
+      obj: T,
+      percentage: boolean = true
+    ): T & { value_text: string } => {
+      const multiplier = percentage ? 100 : 1;
+      const suffix = percentage ? "\u202F%" : "";
+      const value = multiplier * obj.value;
+      const precision = calculateSignificantDigits(value);
+      const value_text = value.toPrecision(precision) + suffix;
+      return { ...obj, value_text };
+    },
+    [calculateSignificantDigits]
+  );
+
+  const selectedMiniEventRewards = useMemo(
+    () =>
+      props.miniEventRewards.filter((e) => {
+        return e.event_name === selectedEvent;
+      }),
+    [props.miniEventRewards, selectedEvent]
+  );
+  const cardPullRewards = useMemo(
+    () =>
+      selectedMiniEventRewards
+        .filter(
+          (e) => e.reward_source === "Pull" && e.reward_category === "Card"
+        )
+        .map((e) => formatValueText(e)),
+    [selectedMiniEventRewards, formatValueText]
+  );
+  const resourcePullRewards = useMemo(
+    () =>
+      selectedMiniEventRewards
+        .filter(
+          (e) => e.reward_source === "Pull" && e.reward_category !== "Card"
+        )
+        .map((e) => formatValueText(e, false)),
+    [selectedMiniEventRewards, formatValueText]
+  );
+  const chestRewards = useMemo(() => {
+    const grouped = selectedMiniEventRewards
+      .filter((e) => e.reward_source !== "Pull")
+      .map((e) => formatValueText(e))
+      .reduce<Record<string, (IMiniEventReward & { value_text: string })[]>>(
+        (acc, item) => {
+          const key = item.reward_source;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(item);
+          return acc;
+        },
+        {}
+      );
+    return Object.keys(grouped)
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+      .map((key) => grouped[key]);
+  }, [selectedMiniEventRewards, formatValueText]);
+
+  return (
+    <>
+      <FormControl fullWidth>
+        <InputLabel>Event</InputLabel>
+        <Select
+          value={selectedEvent}
+          label="Event"
+          onChange={(e) => setSelectedEvent(e.target.value)}
+        >
+          {events.map((e, i) => (
+            <MenuItem key={i} value={e}>
+              {e}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      {cardPullRewards && (
+        <div>
+          <h4 style={{ marginBottom: 0 }}>Card drop rates for pulls</h4>
+          <LootTable
+            lootTable={cardPullRewards}
+            col1="Card"
+            col2="Chance to get card within 100 pulls"
+            setDetail={props.setDetail}
+          />
+        </div>
+      )}
+      {resourcePullRewards && (
+        <div>
+          <h4 style={{ marginBottom: 0 }}>Resource drops for pulls</h4>
+          <LootTable
+            lootTable={resourcePullRewards}
+            col1="Resource"
+            col2="Average amount within 100 pulls"
+            setDetail={props.setDetail}
+          />
+        </div>
+      )}
+      {chestRewards.map((singleChestRewards) => (
+        <>
+          <h4 style={{ marginBottom: 0 }}>
+            Drop rates for {singleChestRewards[0].reward_source}
+          </h4>
+          <LootTable
+            lootTable={singleChestRewards}
+            col1="Reward"
+            col2="Chance"
+            setDetail={props.setDetail}
+          />
+        </>
+      ))}
+    </>
+  );
+};
+
 const QuestChest = (props: { questChests: Record<number, IQuestChest> }) => {
   const chests = Array.from({ length: 5 }, (_, i) => i + 1);
   return (
@@ -410,6 +604,7 @@ const GameMechanics = () => {
     combos,
     cardAvailabilities,
     cardPool,
+    miniEventRewards,
   } = cardCtx;
 
   const sections = [
@@ -417,6 +612,11 @@ const GameMechanics = () => {
       title: "Event quests",
       component: EventQuestTable,
       props: { eventQuests },
+    },
+    {
+      title: "Ticket Event Rewards",
+      component: MiniEventData,
+      props: { miniEventRewards, setDetail },
     },
     {
       title: "Dust for upgrading/recycling cards",
